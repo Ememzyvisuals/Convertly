@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Convertly. Convert images, vectorize graphics, and compress media and video, entirely in your browser. No account, no upload to a server." />
+  <title>Convertly. Convert. Vectorize. Compress.</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <script>
+    // Applied synchronously, before first paint, to avoid a flash of the wrong theme.
+    // Convertly is dark-first by design. Light mode is opt-in and remembered per browser.
+    (function () {
+      try {
+        var saved = localStorage.getItem("convertly:theme");
+        if (saved === "light") document.documentElement.dataset.theme = "light";
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
