@@ -17,6 +17,10 @@ Built by **Ememzyvisuals**, [portfolio](https://ememzyvisuals.vercel.app) ·
 [X](https://x.com/Ememzyvisuals) · [GitHub](https://github.com/Ememzyvisuals) ·
 [TikTok](https://www.tiktok.com/@Ememzyvisuals)
 
+If this project is useful to you, the best way to say so is a message on
+[X/Twitter](https://x.com/Ememzyvisuals), that's also where the "Support" button in the
+app's footer and the repo's own Sponsor tag both point.
+
 Visual design system (near-black palette, orange accent, pill-shaped buttons, system
 font stack) is adapted from [Amicro](https://amicro.vercel.app) by Syed Subhan
 ([@Subhan-code](https://github.com/Subhan-code/Amicro--Micro-transitions-)).
@@ -91,12 +95,26 @@ dropping you into an actual editor, not a bare canvas.
     editable, more (including real open-licensed sets) planned.
   - Loads as its own chunk on demand, so visitors who never open Studio never
     download Konva or its fonts.
-- **Video editing**: not built yet. Planned as a real timeline (drag to trim, live
-  scrubbing preview, overlay graphics on the clip) using WebCodecs for the
-  interactive part and the existing FFmpeg WebAssembly build for final export, see
-  the roadmap.
-- **Audio editing**: not built yet, planned on the same FFmpeg engine already
-  powering the Audio tools.
+- **Video editing (live today)**: a real timeline editor built on the existing FFmpeg
+  WebAssembly engine, not a form of sliders. Trim clips on a draggable timeline with a
+  live scrubbing preview, add text/sticker overlays with drag-to-position and
+  resize/rotate handles, and a full set of entrance animations (fade, pop, bounce,
+  slide) that are genuinely burned into the exported file, not just previewed.
+  - **Professional auto-captioning**: a dedicated Captions tab with Auto Caption
+    (real in-browser speech-to-text via a bundled Whisper model, grouped into natural
+    short caption phrases with word-level timing), a Caption Library of animated
+    caption templates (fade, karaoke-style word highlight, bold pop, bouncy box,
+    slide, type-on, and more, each with its own small animated preview), a Captions
+    list for direct editing, and a Transcript view for correcting text and jumping the
+    playhead to any line. Every caption is fully editable after generation: text, timing,
+    on-screen position (drag directly on the video), and style, per-caption or applied
+    to all at once.
+  - **Guided tour**: an interactive walkthrough of the real Studio interface (not a
+    slideshow), reachable from Convertly Studio's own dashboard or the landing page's
+    "Watch the demo" button, spotlighting each real feature in turn with a short
+    explanation.
+- **Audio editing (live today)**: trim, volume, and fades on the same FFmpeg engine
+  already powering the Audio tools.
 
 **Images & video**
 - **Convert**: PNG, JPEG, WebP, and AVIF (when the visitor's browser supports encoding
@@ -446,7 +464,5 @@ Issues and pull requests are welcome. A few practical notes before opening one:
 
 ## License
 
-No license file has been added to this repository yet. Until one is, the default is
-full copyright, all rights reserved, meaning reuse beyond reading the code isn't
-formally granted. If you're planning to fork this for your own deployment or build on
-top of it, reach out first, or watch this repo for a license file being added.
+[MIT](LICENSE). Fork it, deploy your own copy, build on top of it, just keep the
+license notice.
