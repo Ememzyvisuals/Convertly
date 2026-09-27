@@ -15,6 +15,7 @@ import { buildToolsHub, type HubCategory } from "./pages/toolsHub";
 import { buildToolPage } from "./pages/toolPage";
 import type { ToolIconName } from "./ui/toolIcons";
 import { t } from "./i18n";
+import { updateSEO } from "./seo";
 
 const YEAR = new Date().getFullYear();
 
@@ -283,9 +284,14 @@ function footerRepoLink(href: string, iconName: "star" | "fork" | "heart" | "iss
   return a;
 }
 
-function footerLinkList(title: string, links: { label: string; onClick: () => void }[] | { label: string; href: string }[]): HTMLElement {
+function footerLinkList(
+  title: string,
+  links:
+    | { label: string; onClick: () => void; href?: string }[]
+    | { label: string; href: string }[]
+): HTMLElement {
   const items = links.map((link) => {
-    if ("href" in link) {
+    if ("href" in link && !("onClick" in link)) {
       return el("li", {}, [
         el("a", { href: link.href, target: "_blank", rel: "noopener noreferrer" }, [
           link.label,
@@ -297,8 +303,19 @@ function footerLinkList(title: string, links: { label: string; onClick: () => vo
         ]),
       ]);
     }
+    if ("href" in link && "onClick" in link) {
+      // A real in-app href (e.g. "#/tools/convert"), not a bare button, so a crawler can
+      // discover the tool page as its own link. The click still goes through the existing
+      // in-app navigation rather than a full reload.
+      const a = el("a", { href: link.href, class: "footer-text-link" }, [link.label]);
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        link.onClick();
+      });
+      return el("li", {}, [a]);
+    }
     const btn = el("button", { type: "button", class: "footer-text-link" }, [link.label]);
-    btn.addEventListener("click", link.onClick);
+    btn.addEventListener("click", (link as { onClick: () => void }).onClick);
     return el("li", {}, [btn]);
   });
   return el("div", { class: "footer-col" }, [el("h4", {}, [title]), el("ul", { class: "footer-col-list" }, items)]);
@@ -322,11 +339,15 @@ function buildFooter(onGoToTool: (id: string) => void): HTMLElement {
   ]);
 
   const productCol = footerLinkList(t("footer.product.title"), [
-    { label: t("footer.product.convert"), onClick: () => onGoToTool("convert") },
-    { label: t("footer.product.vectorize"), onClick: () => onGoToTool("vectorize") },
-    { label: t("footer.product.compress"), onClick: () => onGoToTool("compress-image") },
-    { label: t("footer.product.pdfAudioArchive"), onClick: () => onGoToTool("images-to-pdf") },
-  ] as { label: string; onClick: () => void }[]);
+    { label: t("footer.product.convert"), href: "#/tools/convert", onClick: () => onGoToTool("convert") },
+    { label: t("footer.product.vectorize"), href: "#/tools/vectorize", onClick: () => onGoToTool("vectorize") },
+    { label: t("footer.product.compress"), href: "#/tools/compress-image", onClick: () => onGoToTool("compress-image") },
+    {
+      label: t("footer.product.pdfAudioArchive"),
+      href: "#/tools/images-to-pdf",
+      onClick: () => onGoToTool("images-to-pdf"),
+    },
+  ]);
 
   const openSourceCol = el("div", { class: "footer-col" }, [
     el("h4", {}, [t("footer.openSource.title")]),
@@ -481,12 +502,32 @@ const landingHost = el("div", { class: "view view-landing" });
 const toolsHubHost = el("div", { class: "view view-tools-hub" });
 const toolPageHost = el("div", { class: "view view-tool-page" });
 
-function showOnly(view: View) {
+// Keeps the document's title/description/canonical/social tags matching whichever view is on
+// screen (see seo.ts), so a tool page opened directly by hash, a crawler, or a shared link gets
+// its own distinct title and description rather than every page reading identically.
+function updateSEOForView(view: View, toolId?: string) {
+  if (view === "tool" && toolId && TOOL_PAGES[toolId]) {
+    const def = TOOL_PAGES[toolId];
+    updateSEO({ title: def.title, description: def.description, path: `/#/tools/${toolId}` });
+  } else if (view === "tools-hub") {
+    updateSEO({ title: t("hub.title"), description: t("hub.subtitle"), path: "/#/tools" });
+  } else {
+    updateSEO({
+      title: "Convertly. Convert. Vectorize. Compress.",
+      description:
+        "Convert images, vectorize graphics, and compress media and video, entirely in your browser. No account, no upload to a server.",
+      path: "/",
+    });
+  }
+}
+
+function showOnly(view: View, toolId?: string) {
   landingHost.style.display = view === "landing" ? "" : "none";
   toolsHubHost.style.display = view === "tools-hub" ? "block" : "none";
   toolPageHost.style.display = view === "tool" ? "block" : "none";
   header.setView(view);
   window.scrollTo(0, 0);
+  updateSEOForView(view, toolId);
 }
 
 function goTo(view: "landing" | "tools-hub") {
@@ -535,7 +576,7 @@ function goToTool(id: string) {
     goTo("tools-hub");
     return;
   }
-  showOnly("tool");
+  showOnly("tool", id);
   window.location.hash = `#/tools/${id}`;
 }
 
@@ -597,7 +638,7 @@ function applyHash() {
   const hash = window.location.hash;
   const toolMatch = /^#\/tools\/([\w-]+)/.exec(hash);
   if (toolMatch && renderToolPage(toolMatch[1])) {
-    showOnly("tool");
+    showOnly("tool", toolMatch[1]);
   } else if (hash.startsWith("#/tools")) {
     showOnly("tools-hub");
   } else {

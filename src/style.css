@@ -1593,6 +1593,8 @@ select option {
 .hub-card {
   appearance: none;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   position: relative;
   background: linear-gradient(165deg, var(--bg-hover) 0%, var(--bg-raised) 65%);
   border: 1px solid var(--line);

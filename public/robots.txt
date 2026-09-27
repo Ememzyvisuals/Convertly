@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://convertly0.vercel.app/sitemap.xml
