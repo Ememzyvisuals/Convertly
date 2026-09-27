@@ -29,7 +29,12 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-pill: 9999px;
-  --content-width: 1120px;
+  /* A generous cap rather than a narrow fixed column: min() against a viewport
+     percentage means wide monitors get a wide, filled layout instead of a small
+     centered box with dead space on both sides, and it needs no per-breakpoint
+     override to do it. */
+  --content-width: 1400px;
+  --gutter: clamp(20px, 3vw, 48px);
 
   color-scheme: dark;
 }
@@ -122,13 +127,9 @@ button {
 }
 
 .shell {
-  max-width: var(--content-width);
+  max-width: min(var(--content-width), 94vw);
   margin: 0 auto;
-  padding: 0 28px;
-}
-
-@media (max-width: 640px) {
-  .shell { padding: 0 18px; }
+  padding: 0 var(--gutter);
 }
 
 /* ---------- Header ---------- */
@@ -142,6 +143,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 10px;
   gap: 16px;
 }
 
@@ -180,30 +183,56 @@ button {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
+/* A small pill-track nav with a sliding highlight behind the active link, same motion
+   language as the tool-tabs indicator elsewhere, instead of a plain pair of text links. */
 .header-links {
+  position: relative;
   display: flex;
-  gap: 8px;
+  gap: 2px;
+  padding: 3px;
   font-size: 14px;
   color: var(--text-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg-inset);
 }
 
 .header-nav-btn {
+  position: relative;
+  z-index: 1;
   appearance: none;
   background: none;
   border: none;
   cursor: pointer;
   font-family: var(--font-body);
+  font-weight: 500;
   font-size: 14px;
   color: var(--text-muted);
-  padding: 8px 14px;
+  padding: 7px 16px;
   border-radius: var(--radius-pill);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.2s ease;
 }
-.header-nav-btn:hover { color: var(--text); background: var(--bg-hover); }
-.header-nav-btn[aria-current="page"] { color: var(--text); background: var(--bg-active); }
+.header-nav-btn:hover { color: var(--text); }
+.header-nav-btn[aria-current="page"] { color: var(--on-accent); }
+
+.header-nav-indicator {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  z-index: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: transform 0.28s cubic-bezier(0.65, 0, 0.35, 1), width 0.28s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform, width;
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-nav-indicator { transition: none; }
+}
 
 .theme-toggle {
   appearance: none;
@@ -255,8 +284,8 @@ button {
 }
 
 .hero h1 {
-  font-size: clamp(32px, 5vw, 54px);
-  line-height: 1.06;
+  font-size: clamp(34px, 5.4vw, 64px);
+  line-height: 1.05;
   max-width: 15ch;
   opacity: 0;
   animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
@@ -1293,12 +1322,12 @@ select, .checkbox-row {
 .tools-hub { padding: 64px 0 100px; }
 
 .tools-hub-header {
-  max-width: var(--content-width);
+  max-width: min(var(--content-width), 94vw);
   margin: 0 auto 56px;
-  padding: 0 28px;
+  padding: 0 var(--gutter);
 }
 .tools-hub-header h1 {
-  font-size: clamp(36px, 5vw, 52px);
+  font-size: clamp(38px, 5.6vw, 60px);
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-bottom: 10px;
@@ -1310,9 +1339,9 @@ select, .checkbox-row {
 }
 
 .hub-category {
-  max-width: var(--content-width);
+  max-width: min(var(--content-width), 94vw);
   margin: 0 auto 48px;
-  padding: 0 28px;
+  padding: 0 var(--gutter);
 }
 .hub-category-title {
   font-family: var(--font-mono);
@@ -1418,7 +1447,7 @@ select, .checkbox-row {
   margin-bottom: 36px;
 }
 .tool-page-header h1 {
-  font-size: clamp(28px, 4vw, 38px);
+  font-size: clamp(30px, 4.4vw, 44px);
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-bottom: 10px;

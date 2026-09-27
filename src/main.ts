@@ -46,23 +46,33 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
   const toolsLink = el("button", { type: "button", class: "header-nav-btn" }, ["Open tools"]);
   toolsLink.addEventListener("click", () => onNavigate("tools-hub"));
 
+  const navIndicator = el("div", { class: "header-nav-indicator", "aria-hidden": "true" });
+  const navTrack = el("nav", { class: "header-links" }, [homeLink, toolsLink, navIndicator]);
+
   const root = el("header", { class: "site-header" }, [
     el("div", { class: "shell" }, [
       brand,
-      el("div", { class: "header-right" }, [
-        el("nav", { class: "header-links" }, [homeLink, toolsLink]),
-        createThemeToggle(),
-      ]),
+      el("div", { class: "header-right" }, [navTrack, createThemeToggle()]),
     ]),
   ]);
 
-  function setView(view: View) {
-    homeLink.setAttribute("aria-current", view === "landing" ? "page" : "false");
-    toolsLink.setAttribute(
-      "aria-current",
-      view === "workspace" || view === "tools-hub" || view === "tool-convert" ? "page" : "false"
-    );
+  function moveIndicatorTo(btn: HTMLElement) {
+    navIndicator.style.width = `${btn.offsetWidth}px`;
+    navIndicator.style.transform = `translateX(${btn.offsetLeft}px)`;
   }
+
+  function setView(view: View) {
+    const homeActive = view === "landing";
+    const toolsActive = view === "workspace" || view === "tools-hub" || view === "tool-convert";
+    homeLink.setAttribute("aria-current", homeActive ? "page" : "false");
+    toolsLink.setAttribute("aria-current", toolsActive ? "page" : "false");
+    requestAnimationFrame(() => moveIndicatorTo(homeActive ? homeLink : toolsLink));
+  }
+
+  window.addEventListener("resize", () => {
+    const active = homeLink.getAttribute("aria-current") === "page" ? homeLink : toolsLink;
+    moveIndicatorTo(active);
+  });
 
   return { root, setView };
 }
