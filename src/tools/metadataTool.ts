@@ -1,10 +1,17 @@
 import { el, clear } from "../ui/dom";
 import { dropzoneMascot } from "../ui/upload";
-import { formatBytes } from "../lib/format";
+import { formatBytes, triggerDownload } from "../lib/format";
+import { sniffFileType } from "../lib/validate";
+import { parseMp4Metadata, parseId3Tags, parseWavMetadata } from "../lib/deepMediaMeta";
 
 interface Row {
   label: string;
   value: string;
+}
+
+interface Block {
+  title: string;
+  rows: Row[];
 }
 
 export function buildMetadataTool(): HTMLElement {
@@ -65,12 +72,18 @@ export function buildMetadataTool(): HTMLElement {
 
     let detailRows: Row[] = [];
     let detailTitle = "";
+    let blocks: Block[] = [];
+    let thumbnail: { url: string; blob: Blob } | null = null;
     const notes: string[] = [];
+
+    const isPng = file.type === "image/png" || (await sniffFileType(file)) === "png";
 
     if (file.type.startsWith("image/")) {
       detailTitle = "Image details";
-      const info = await inspectImage(file);
+      const info = await inspectImage(file, isPng);
       detailRows = info.rows;
+      blocks = info.blocks;
+      thumbnail = info.thumbnail;
       notes.push(...info.notes);
     } else if (file.type.startsWith("video/")) {
       detailTitle = "Video details";
@@ -78,11 +91,37 @@ export function buildMetadataTool(): HTMLElement {
       if (!detailRows.length) {
         notes.push("Couldn't read this video's duration or resolution, the file's size and type above are still accurate. This can happen if the file uses a codec this browser can't decode.");
       }
+      const isMp4 = file.type === "video/mp4" || file.type === "video/quicktime" || (await sniffFileType(file)) === "mp4" || (await sniffFileType(file)) === "mov";
+      if (isMp4) {
+        try {
+          const mp4Rows = await parseMp4Metadata(file);
+          if (mp4Rows.length) blocks.push({ title: "Container metadata (MP4/MOV)", rows: mp4Rows });
+        } catch {
+          /* not fatal; still have the basic duration/resolution above */
+        }
+      }
     } else if (file.type.startsWith("audio/")) {
       detailTitle = "Audio details";
       detailRows = await inspectAudio(file);
       if (!detailRows.length) {
         notes.push("Couldn't read this audio file's technical details, the file's size and type above are still accurate. This can happen if the file uses a codec this browser can't decode.");
+      }
+      const detected = await sniffFileType(file);
+      if (file.type === "audio/mpeg" || file.type === "audio/mp3" || detected === "mp3") {
+        try {
+          const id3Rows = await parseId3Tags(file);
+          if (id3Rows.length) blocks.push({ title: "ID3 tags", rows: id3Rows });
+        } catch {
+          /* not fatal */
+        }
+      }
+      if (file.type === "audio/wav" || file.type === "audio/x-wav" || detected === "wav") {
+        try {
+          const wavRows = await parseWavMetadata(file);
+          if (wavRows.length) blocks.push({ title: "WAV format & tags", rows: wavRows });
+        } catch {
+          /* not fatal */
+        }
       }
     } else {
       notes.push("No deeper metadata is available for this file type in the browser, only the basic file info above.");
@@ -91,6 +130,21 @@ export function buildMetadataTool(): HTMLElement {
     clear(resultHost);
     resultHost.append(metadataTable("File", fileRows));
     if (detailRows.length) resultHost.append(metadataTable(detailTitle, detailRows));
+    if (thumbnail) {
+      const dlBtn = el("button", { type: "button", class: "secondary-btn" }, ["Download embedded thumbnail"]);
+      dlBtn.addEventListener("click", () => triggerDownload(thumbnail!.blob, "embedded-thumbnail.jpg"));
+      resultHost.append(
+        el("div", { class: "metadata-block" }, [
+          el("h3", { class: "metadata-block-title" }, ["Embedded thumbnail"]),
+          el("div", { class: "control-hint" }, [
+            "Many cameras and editors store a small preview image inside the file, separate from the full picture. Extracted below.",
+          ]),
+          el("div", { class: "qr-preview" }, [el("img", { src: thumbnail.url, alt: "Embedded thumbnail" })]),
+          dlBtn,
+        ])
+      );
+    }
+    for (const b of blocks) resultHost.append(metadataTable(b.title, b.rows));
     for (const n of notes) resultHost.append(el("div", { class: "control-hint" }, [n]));
 
     const another = el("button", { type: "button", class: "secondary-btn", style: "margin-top:14px" }, ["Inspect another file"]);
@@ -115,16 +169,58 @@ function metadataTable(title: string, rows: Row[]): HTMLElement {
       rows.map((r) =>
         el("div", { class: "metadata-row" }, [
           el("span", { class: "metadata-key" }, [r.label]),
-          el("span", { class: "metadata-value mono" }, [r.value]),
+          /^https?:\/\//.test(r.value)
+            ? el("a", { class: "metadata-value mono", href: r.value, target: "_blank", rel: "noopener noreferrer" }, [r.value])
+            : el("span", { class: "metadata-value mono" }, [r.value]),
         ])
       )
     ),
   ]);
 }
 
-async function inspectImage(file: File): Promise<{ rows: Row[]; notes: string[] }> {
+// Every EXIF/TIFF sub-block exifr can extract, dumped in full rather than a curated shortlist,
+// so nothing stamped on the file is left out just because it wasn't anticipated ahead of time.
+const DEEP_EXIF_OPTIONS = {
+  tiff: true,
+  ifd1: true,
+  exif: true,
+  gps: true,
+  interop: true,
+  makerNote: true,
+  userComment: true,
+  xmp: true,
+  icc: true,
+  iptc: true,
+  jfif: true,
+  ihdr: true,
+  sanitize: false,
+  mergeOutput: false,
+  translateKeys: true,
+  translateValues: true,
+  reviveValues: true,
+  firstChunkSize: 128 * 1024,
+  chunkSize: 128 * 1024,
+  chunkLimit: 20,
+} as const;
+
+const SEGMENT_TITLES: [string, string][] = [
+  ["ifd0", "Main image tags (IFD0)"],
+  ["exif", "Exposure & lens (EXIF sub-IFD)"],
+  ["gps", "GPS / location"],
+  ["interop", "Interoperability"],
+  ["ifd1", "Embedded thumbnail tags (IFD1)"],
+  ["iptc", "IPTC (captions, credit, keywords)"],
+  ["xmp", "XMP"],
+  ["icc", "ICC color profile"],
+  ["jfif", "JFIF"],
+  ["ihdr", "PNG header (IHDR)"],
+];
+
+async function inspectImage(file: File, isPng: boolean): Promise<{ rows: Row[]; blocks: Block[]; notes: string[]; thumbnail: { url: string; blob: Blob } | null }> {
   const rows: Row[] = [];
+  const blocks: Block[] = [];
   const notes: string[] = [];
+  let thumbnail: { url: string; blob: Blob } | null = null;
 
   try {
     const dims = await getImageDims(file);
@@ -136,43 +232,166 @@ async function inspectImage(file: File): Promise<{ rows: Row[]; notes: string[] 
 
   try {
     const exifr = await import("exifr");
-    const tags = await exifr.parse(file, { gps: true, tiff: true, exif: true, iptc: true, xmp: true });
-    const before = rows.length;
-    if (tags) {
-      const wanted: [string, string][] = [
-        ["Make", "Camera make"],
-        ["Model", "Camera model"],
-        ["LensModel", "Lens"],
-        ["DateTimeOriginal", "Date taken"],
-        ["ISO", "ISO"],
-        ["FNumber", "Aperture"],
-        ["ExposureTime", "Shutter speed"],
-        ["FocalLength", "Focal length"],
-        ["Software", "Software"],
-        ["Orientation", "Orientation"],
-      ];
-      for (const [key, label] of wanted) {
-        const v = tags[key];
-        if (v !== undefined && v !== null) rows.push({ label, value: formatExifValue(key, v) });
+    const output = await exifr.parse(file, DEEP_EXIF_OPTIONS);
+
+    if (output) {
+      for (const [key, title] of SEGMENT_TITLES) {
+        const seg = (output as Record<string, unknown>)[key];
+        if (seg && typeof seg === "object") {
+          const segRows = objectToRows(seg as Record<string, unknown>);
+          if (segRows.length) blocks.push({ title, rows: segRows });
+        }
       }
-      if (typeof tags.latitude === "number" && typeof tags.longitude === "number") {
-        rows.push({ label: "GPS location", value: `${tags.latitude.toFixed(6)}, ${tags.longitude.toFixed(6)}` });
+
+      try {
+        const resolved = await exifr.gps(file);
+        if (resolved) {
+          const mapUrl = `https://www.google.com/maps?q=${resolved.latitude},${resolved.longitude}`;
+          const gpsBlock = blocks.find((b) => b.title === "GPS / location");
+          const summaryRows: Row[] = [
+            { label: "Decimal coordinates", value: `${resolved.latitude.toFixed(6)}, ${resolved.longitude.toFixed(6)}` },
+            { label: "View on map", value: mapUrl },
+          ];
+          if (gpsBlock) gpsBlock.rows.unshift(...summaryRows);
+          else blocks.unshift({ title: "GPS / location", rows: summaryRows });
+        }
+      } catch {
+        /* no GPS block, or coordinates couldn't be resolved; the raw gps segment (if any) still shows above */
       }
     }
-    if (rows.length === before) notes.push("No camera or EXIF metadata was found in this image, it may have been stripped, or it wasn't from a camera.");
+
+    if (!blocks.length) {
+      notes.push(
+        "No embedded metadata tags (EXIF, IPTC, XMP, or ICC) were found in this image. It may have been stripped by an app or social platform, or it never had any."
+      );
+    }
   } catch {
-    notes.push("Couldn't read EXIF metadata from this file.");
+    notes.push("Couldn't read embedded metadata from this file.");
   }
 
-  return { rows, notes };
+  if (isPng) {
+    try {
+      const textRows = await readPngTextChunks(file);
+      if (textRows.length) blocks.push({ title: "PNG text chunks (tEXt / iTXt)", rows: textRows });
+    } catch {
+      /* not fatal; PNG text chunks are a bonus source, not the primary one */
+    }
+  }
+
+  try {
+    const exifr = await import("exifr");
+    const thumbBytes = await exifr.thumbnail(file);
+    if (thumbBytes) {
+      const blob = new Blob([thumbBytes as BlobPart], { type: "image/jpeg" });
+      thumbnail = { url: URL.createObjectURL(blob), blob };
+    }
+  } catch {
+    /* not every file has an embedded thumbnail */
+  }
+
+  return { rows, blocks, notes, thumbnail };
 }
 
-function formatExifValue(key: string, v: unknown): string {
-  if (key === "DateTimeOriginal" && v instanceof Date) return v.toLocaleString();
-  if (key === "ExposureTime" && typeof v === "number") return v < 1 ? `1/${Math.round(1 / v)} s` : `${v} s`;
-  if (key === "FNumber") return `f/${v}`;
-  if (key === "FocalLength") return `${v} mm`;
-  return String(v);
+// Turns one exifr segment (a plain object of tag -> value) into display rows, formatting
+// whatever comes back rather than assuming a fixed, known set of keys ahead of time.
+// Pure structural byte offsets into the file's own TIFF tree. They point at the very sub-IFDs
+// this tool already renders as their own separate blocks, so surfacing the raw pointer value
+// alongside is noise rather than information.
+const STRUCTURAL_POINTER_KEYS = new Set(["ExifIFD", "GPSIFD", "InteropIFD", "InteroperabilityIFD"]);
+
+function objectToRows(seg: Record<string, unknown>): Row[] {
+  const rows: Row[] = [];
+  for (const [key, value] of Object.entries(seg)) {
+    if (value === undefined || value === null) continue;
+    if (STRUCTURAL_POINTER_KEYS.has(key)) continue;
+    rows.push({ label: humanizeKey(key), value: formatAnyValue(value) });
+  }
+  return rows;
+}
+
+function humanizeKey(key: string): string {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
+}
+
+const MAX_VALUE_CHARS = 500;
+
+function formatAnyValue(v: unknown): string {
+  if (v instanceof Date) return v.toLocaleString();
+  if (v instanceof Uint8Array || v instanceof ArrayBuffer) {
+    const len = v instanceof Uint8Array ? v.length : v.byteLength;
+    return `<binary data, ${formatBytes(len)}>`;
+  }
+  if (Array.isArray(v)) {
+    if (v.length > 24) return `<${v.length} values>`;
+    return v.join(", ");
+  }
+  if (typeof v === "object") {
+    const json = JSON.stringify(v);
+    return json.length > MAX_VALUE_CHARS ? json.slice(0, MAX_VALUE_CHARS) + "... (truncated)" : json;
+  }
+  const s = String(v);
+  return s.length > MAX_VALUE_CHARS ? s.slice(0, MAX_VALUE_CHARS) + "... (truncated)" : s;
+}
+
+// PNG stores free-form text as its own chunk types outside of EXIF entirely, which is where
+// tools like Stable Diffusion stash the full generation prompt, seed, and model under a
+// "parameters" keyword, and where editors sometimes leave a plain "Comment" or "Software" tag.
+// zTXt and compressed iTXt chunks are noted but not inflated, since that needs a zlib library
+// this app doesn't otherwise carry.
+async function readPngTextChunks(file: File): Promise<Row[]> {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const rows: Row[] = [];
+  const sig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  for (let i = 0; i < sig.length; i++) if (buf[i] !== sig[i]) return rows;
+
+  const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  let offset = 8;
+  const decoder = new TextDecoder("utf-8");
+  const latin1 = new TextDecoder("latin1");
+
+  while (offset + 8 <= buf.length) {
+    const length = view.getUint32(offset);
+    const type = latin1.decode(buf.subarray(offset + 4, offset + 8));
+    const dataStart = offset + 8;
+    if (dataStart + length > buf.length) break;
+    const data = buf.subarray(dataStart, dataStart + length);
+
+    if (type === "tEXt") {
+      const nul = data.indexOf(0);
+      if (nul > -1) {
+        const keyword = latin1.decode(data.subarray(0, nul));
+        const text = latin1.decode(data.subarray(nul + 1));
+        rows.push({ label: keyword, value: text.length > MAX_VALUE_CHARS ? text.slice(0, MAX_VALUE_CHARS) + "... (truncated)" : text });
+      }
+    } else if (type === "iTXt") {
+      const nul1 = data.indexOf(0);
+      if (nul1 > -1) {
+        const keyword = latin1.decode(data.subarray(0, nul1));
+        const compressed = data[nul1 + 1] === 1;
+        if (compressed) {
+          rows.push({ label: keyword, value: "<compressed iTXt chunk, not decompressed>" });
+        } else {
+          // skip: compression method byte, language tag (nul-terminated), translated keyword (nul-terminated)
+          let p = nul1 + 3;
+          const nul2 = data.indexOf(0, p);
+          p = nul2 > -1 ? nul2 + 1 : p;
+          const nul3 = data.indexOf(0, p);
+          p = nul3 > -1 ? nul3 + 1 : p;
+          const text = decoder.decode(data.subarray(p));
+          rows.push({ label: keyword, value: text.length > MAX_VALUE_CHARS ? text.slice(0, MAX_VALUE_CHARS) + "... (truncated)" : text });
+        }
+      }
+    } else if (type === "zTXt") {
+      const nul = data.indexOf(0);
+      const keyword = nul > -1 ? latin1.decode(data.subarray(0, nul)) : "(zTXt)";
+      rows.push({ label: keyword, value: "<compressed zTXt chunk, not decompressed>" });
+    }
+
+    offset = dataStart + length + 4; // + 4 for the CRC
+    if (type === "IEND") break;
+  }
+
+  return rows;
 }
 
 function inspectVideo(file: File): Promise<Row[]> {
