@@ -53,8 +53,17 @@ export function rangeControl(
   }) as HTMLInputElement;
   const valueEl = el("div", { class: "range-value" }, [formatValue(initial)]);
 
+  // The track's filled portion is a CSS gradient stop (--range-fill), not the browser's own
+  // accent-color fill, since the thumb/track are fully custom-styled; keep it in sync by hand.
+  function syncFill(v: number) {
+    const pct = max > min ? ((v - min) / (max - min)) * 100 : 0;
+    input.style.setProperty("--range-fill", `${pct}%`);
+  }
+  syncFill(initial);
+
   input.addEventListener("input", () => {
     const v = Number(input.value);
+    syncFill(v);
     valueEl.textContent = formatValue(v);
     onInput(v);
   });
@@ -68,6 +77,7 @@ export function rangeControl(
     getValue: () => Number(input.value),
     setValue: (v: number) => {
       input.value = String(v);
+      syncFill(v);
       valueEl.textContent = formatValue(v);
     },
   };

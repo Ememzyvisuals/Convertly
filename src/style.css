@@ -754,20 +754,23 @@ button {
   font-family: var(--font-mono);
 }
 
+/* A recessed track (inset shadow) with pill buttons that lift off it when active, so the
+ * selected option reads as a raised tab rather than a flat color swap. */
 .segmented {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   border: 1px solid var(--line);
-  background: var(--bg-raised);
+  background: var(--bg-inset);
   border-radius: var(--radius-pill);
   padding: 4px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.55));
 }
 .segmented button {
   flex: 1 1 auto;
   min-width: fit-content;
   appearance: none;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-muted);
@@ -775,20 +778,75 @@ button {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.segmented button:hover:not([aria-pressed="true"]) {
+  color: var(--text);
+  background: var(--bg-hover);
 }
 .segmented button[aria-pressed="true"] {
-  background: var(--accent-dim);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--accent) 22%, var(--bg-raised)), var(--accent-dim));
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--accent-ink);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 6px 14px -6px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.8));
+}
+.segmented button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 @media (max-width: 480px) {
   .segmented button { font-size: 12px; padding: 8px 12px; }
 }
 
+/* Custom range track and thumb (cross-browser pairs below) so the slider matches the rest of
+ * the control set instead of falling back to the browser's bare native look. The filled
+ * portion is faked with a background gradient stop tied to the current value via an inline
+ * CSS variable the JS sets on input. */
 input[type="range"] {
   width: 100%;
-  accent-color: var(--accent);
+  appearance: none;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--range-fill, 50%),
+    var(--bg-inset) var(--range-fill, 50%),
+    var(--bg-inset) 100%
+  );
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.5));
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffd7a8, var(--accent) 65%);
+  border: 2px solid var(--bg-raised);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.9));
+  transition: transform 0.14s ease;
+}
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffd7a8, var(--accent) 65%);
+  border: 2px solid var(--bg-raised);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.9));
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+}
+input[type="range"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .range-row {
@@ -804,22 +862,58 @@ input[type="range"] {
   text-align: right;
 }
 
-select, .checkbox-row {
+select {
   width: 100%;
+  appearance: none;
   border: 1px solid var(--line);
-  background: var(--bg-raised);
+  background-color: var(--bg-raised);
+  /* CSS paints the first-listed layer on top, so the chevron (small, positioned) has to come
+   * before the gradient (full-size) or the gradient covers it entirely. */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e86f00' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"),
+    linear-gradient(165deg, var(--bg-hover) 0%, var(--bg-raised) 70%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, 0 0;
+  background-size: 16px, 100% 100%;
   color: var(--text);
   border-radius: var(--radius-sm);
-  padding: 9px 10px;
+  padding: 9px 34px 9px 12px;
   font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+select:hover { border-color: var(--line-strong); }
+select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+select option {
+  background: var(--bg-raised);
+  color: var(--text);
 }
 
 .checkbox-row {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  font-size: 13px;
+  transition: border-color 0.16s ease, background 0.16s ease;
 }
-.checkbox-row input { accent-color: var(--accent); }
+.checkbox-row:hover { border-color: var(--line-strong); background: var(--bg-hover); }
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
 .control-hint {
   font-size: 12px;
