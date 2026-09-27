@@ -24,7 +24,7 @@ function dropzoneMascot(): HTMLElement {
   wrap.innerHTML = `
     <picture>
       <source srcset="/brand/mascot-bust.webp" type="image/webp" />
-      <img src="/brand/mascot-bust.png" alt="" width="130" height="114" />
+      <img src="/brand/mascot-bust.png" alt="" width="130" height="115" />
     </picture>`;
   return wrap;
 }
