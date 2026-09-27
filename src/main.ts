@@ -29,6 +29,14 @@ function brandMarkSVG(): string {
   return `<svg viewBox="0 0 20 20" width="20" height="20"><path d="M4 15 4 6 11 6 15 10 15 15 Z" fill="none" stroke="#e86f00" stroke-width="1.4"/><path d="M4 15 10 15 15 8" fill="none" stroke="#ffb066" stroke-width="1.4"/></svg>`;
 }
 
+function hamburgerIconSVG(): string {
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`;
+}
+
+function closeIconSVG(): string {
+  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`;
+}
+
 function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; setView: (view: View) => void } {
   const mark = el("span", { class: "brand-mark" });
   mark.innerHTML = brandMarkSVG();
@@ -40,20 +48,79 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
   ]);
   brand.addEventListener("click", () => onNavigate("landing"));
 
+  // Desktop: a pill track with a sliding highlight.
   const homeLink = el("button", { type: "button", class: "header-nav-btn" }, ["Home"]);
-  homeLink.addEventListener("click", () => onNavigate("landing"));
-
   const toolsLink = el("button", { type: "button", class: "header-nav-btn" }, ["Open tools"]);
-  toolsLink.addEventListener("click", () => onNavigate("tools-hub"));
-
   const navIndicator = el("div", { class: "header-nav-indicator", "aria-hidden": "true" });
-  const navTrack = el("nav", { class: "header-links" }, [homeLink, toolsLink, navIndicator]);
+  const navTrack = el("nav", { class: "header-links", "aria-label": "Main" }, [homeLink, toolsLink, navIndicator]);
+
+  // Mobile: a hamburger button that opens a slide-in drawer, the standard mobile pattern,
+  // rather than squeezing the desktop pill nav into a second wrapped row.
+  const hamburgerBtn = el("button", {
+    type: "button",
+    class: "mobile-nav-toggle",
+    "aria-label": "Open menu",
+    "aria-expanded": "false",
+  });
+  hamburgerBtn.innerHTML = hamburgerIconSVG();
+
+  const drawerMark = el("span", { class: "brand-mark" });
+  drawerMark.innerHTML = brandMarkSVG();
+  const closeBtn = el("button", { type: "button", class: "mobile-nav-close", "aria-label": "Close menu" });
+  closeBtn.innerHTML = closeIconSVG();
+
+  const mobileHomeLink = el("button", { type: "button", class: "mobile-nav-link" }, ["Home"]);
+  const mobileToolsLink = el("button", { type: "button", class: "mobile-nav-link" }, ["Open tools"]);
+
+  const drawer = el("aside", { class: "mobile-nav-drawer", role: "dialog", "aria-label": "Menu", "aria-modal": "true" }, [
+    el("div", { class: "mobile-nav-drawer-head" }, [
+      el("div", { class: "brand", style: "cursor:default" }, [drawerMark, "Convertly"]),
+      closeBtn,
+    ]),
+    el("nav", { class: "mobile-nav-links", "aria-label": "Main" }, [mobileHomeLink, mobileToolsLink]),
+    el("div", { class: "mobile-nav-drawer-foot" }, [
+      el("span", {}, ["Appearance"]),
+      createThemeToggle(),
+    ]),
+  ]);
+
+  const overlay = el("div", { class: "mobile-nav-overlay", "aria-hidden": "true" });
+
+  let drawerOpen = false;
+  function setDrawerOpen(next: boolean) {
+    drawerOpen = next;
+    overlay.classList.toggle("open", next);
+    drawer.classList.toggle("open", next);
+    hamburgerBtn.setAttribute("aria-expanded", String(next));
+    document.body.style.overflow = next ? "hidden" : "";
+  }
+
+  hamburgerBtn.addEventListener("click", () => setDrawerOpen(!drawerOpen));
+  overlay.addEventListener("click", () => setDrawerOpen(false));
+  closeBtn.addEventListener("click", () => setDrawerOpen(false));
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawerOpen) setDrawerOpen(false);
+  });
+
+  homeLink.addEventListener("click", () => onNavigate("landing"));
+  toolsLink.addEventListener("click", () => onNavigate("tools-hub"));
+  mobileHomeLink.addEventListener("click", () => {
+    setDrawerOpen(false);
+    onNavigate("landing");
+  });
+  mobileToolsLink.addEventListener("click", () => {
+    setDrawerOpen(false);
+    onNavigate("tools-hub");
+  });
 
   const root = el("header", { class: "site-header" }, [
     el("div", { class: "shell" }, [
       brand,
       el("div", { class: "header-right" }, [navTrack, createThemeToggle()]),
+      hamburgerBtn,
     ]),
+    overlay,
+    drawer,
   ]);
 
   function moveIndicatorTo(btn: HTMLElement) {
@@ -66,12 +133,15 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
     const toolsActive = view === "workspace" || view === "tools-hub" || view === "tool-convert";
     homeLink.setAttribute("aria-current", homeActive ? "page" : "false");
     toolsLink.setAttribute("aria-current", toolsActive ? "page" : "false");
+    mobileHomeLink.setAttribute("aria-current", homeActive ? "page" : "false");
+    mobileToolsLink.setAttribute("aria-current", toolsActive ? "page" : "false");
     requestAnimationFrame(() => moveIndicatorTo(homeActive ? homeLink : toolsLink));
   }
 
   window.addEventListener("resize", () => {
     const active = homeLink.getAttribute("aria-current") === "page" ? homeLink : toolsLink;
     moveIndicatorTo(active);
+    if (window.innerWidth > 760 && drawerOpen) setDrawerOpen(false);
   });
 
   return { root, setView };

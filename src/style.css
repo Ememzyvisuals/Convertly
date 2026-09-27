@@ -256,6 +256,135 @@ button {
 }
 .theme-toggle:active { transform: translateY(0); }
 
+/* A slightly bigger, more confident header once there's real room for it on desktop.
+   Mobile keeps the compact sizing below, this only scales things up. */
+@media (min-width: 960px) {
+  .site-header { padding: 26px 0; }
+  .brand-mark { width: 23px; height: 23px; }
+  .brand { font-size: 22px; gap: 11px; }
+  .header-links { padding: 4px; }
+  .header-nav-btn { padding: 9px 20px; font-size: 15px; }
+  .theme-toggle { width: 38px; height: 38px; }
+}
+
+/* ---------- Mobile nav: hamburger + slide-in drawer ---------- */
+
+.mobile-nav-toggle {
+  display: none;
+  appearance: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+  flex: none;
+}
+.mobile-nav-toggle:hover { border-color: var(--accent); }
+
+.mobile-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.mobile-nav-overlay.open { opacity: 1; pointer-events: auto; }
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 71;
+  height: 100dvh;
+  width: min(80vw, 320px);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: var(--bg-raised);
+  border-left: 1px solid var(--line);
+  box-shadow: -20px 0 44px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.6));
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.mobile-nav-drawer.open { transform: translateX(0); }
+
+.mobile-nav-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.mobile-nav-close {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-inset);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.mobile-nav-close:hover { color: var(--text); border-color: var(--accent); }
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-nav-link {
+  appearance: none;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--text-muted);
+  padding: 14px 14px;
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.mobile-nav-link:hover { background: var(--bg-hover); color: var(--text); }
+.mobile-nav-link[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
+
+.mobile-nav-drawer-foot {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+@media (max-width: 760px) {
+  .header-right { display: none; }
+  .mobile-nav-toggle { display: flex; }
+}
+@media (min-width: 761px) {
+  .mobile-nav-toggle,
+  .mobile-nav-overlay,
+  .mobile-nav-drawer {
+    display: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-drawer, .mobile-nav-overlay { transition: none; }
+}
+
 /* ---------- Hero ---------- */
 
 .hero {
@@ -265,7 +394,7 @@ button {
 
 .hero-inner {
   display: grid;
-  grid-template-columns: minmax(0, 560px) minmax(240px, 360px);
+  grid-template-columns: minmax(0, 560px) minmax(360px, 1fr);
   align-items: center;
   gap: 36px;
   padding-bottom: 56px;
@@ -276,6 +405,9 @@ button {
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; }
   .hero-copy { max-width: 560px; }
+  /* Stacked single-column layout: center the mascot again rather than keeping the
+     desktop-only rightward nudge, which only makes sense next to the copy column. */
+  .hero-character { margin: 0 auto; }
 }
 
 @media (max-width: 860px) {
@@ -408,7 +540,7 @@ button {
   white-space: nowrap;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(52px, 9vw, 92px);
+  font-size: clamp(52px, 11vw, 128px);
   line-height: 0.9;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -420,8 +552,10 @@ button {
 .hero-character {
   position: relative;
   z-index: 1;
-  width: min(320px, 70vw);
-  margin: 0 auto;
+  width: min(420px, 74vw);
+  /* Nudged right of center rather than dead-centered, so it reads as sitting in front
+     of its background word instead of floating in the middle of empty space. */
+  margin: 0 0 0 auto;
   filter: drop-shadow(0 18px 30px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.7)));
 }
 .hero-character svg, .hero-character img { width: 100%; height: auto; display: block; }
