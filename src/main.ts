@@ -8,22 +8,22 @@ import "@fontsource/fredoka/600.css";
 import "@fontsource/fredoka/700.css";
 import "./style.css";
 import { el, clear } from "./ui/dom";
-import { buildConvertTool } from "./tools/convertTool";
+import { buildConvertFormatTool, buildRemoveBgTool } from "./tools/convertTool";
 import { buildVectorizeTool } from "./tools/vectorizeTool";
-import { buildCompressTool } from "./tools/compressTool";
-import { buildPdfTool } from "./tools/pdfTool";
-import { buildArchiveTool } from "./tools/archiveTool";
+import { buildCompressImageTool, buildCompressVideoTool } from "./tools/compressTool";
+import { buildImagesToPdf, buildPdfToImages, buildMergePdfs, buildSplitPdf } from "./tools/pdfTool";
+import { buildCreateZip, buildExtractZip } from "./tools/archiveTool";
 import { buildAudioTool } from "./tools/audioTool";
-import { buildVideoExtraTool } from "./tools/videoExtraTool";
+import { buildTrimVideoTool, buildVideoToGifTool, buildExtractAudioTool, buildReplaceAudioTool } from "./tools/videoExtraTool";
 import { xLogoSVG, tiktokLogoSVG, githubLogoSVG, portfolioGlyphSVG } from "./ui/socialIcons";
 import { createThemeToggle } from "./ui/themeToggle";
-import { workspaceAvatarSVG } from "./ui/illustrations";
 import { buildToolsHub, type HubCategory } from "./pages/toolsHub";
 import { buildToolPage } from "./pages/toolPage";
+import type { ToolIconName } from "./ui/toolIcons";
 
 const YEAR = new Date().getFullYear();
 
-type View = "landing" | "workspace" | "tools-hub" | "tool-convert";
+type View = "landing" | "tools-hub" | "tool";
 
 // A single bold glyph meant to sit inside a solid-colored badge (see .brand-badge), not a
 // loose two-tone line icon floating next to the wordmark. Solid fill in currentColor so it
@@ -40,7 +40,7 @@ function closeIconSVG(): string {
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`;
 }
 
-function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; setView: (view: View) => void } {
+function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { root: HTMLElement; setView: (view: View) => void } {
   const mark = el("span", { class: "brand-mark brand-badge" });
   mark.innerHTML = brandMarkSVG();
 
@@ -135,7 +135,7 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
 
   function setView(view: View) {
     const homeActive = view === "landing";
-    const toolsActive = view === "workspace" || view === "tools-hub" || view === "tool-convert";
+    const toolsActive = view === "tools-hub" || view === "tool";
     homeLink.setAttribute("aria-current", homeActive ? "page" : "false");
     toolsLink.setAttribute("aria-current", toolsActive ? "page" : "false");
     mobileHomeLink.setAttribute("aria-current", homeActive ? "page" : "false");
@@ -205,170 +205,6 @@ function buildHero(onGetStarted: () => void): HTMLElement {
       ]),
       visual,
     ]),
-  ]);
-}
-
-type ToolId = "convert" | "vectorize" | "compress" | "video-extra" | "pdf" | "archive" | "audio";
-type CategoryId = "images-video" | "pdf-docs" | "audio" | "archives";
-
-type ToolBuild = () => HTMLElement | Promise<HTMLElement>;
-
-interface Category {
-  id: CategoryId;
-  label: string;
-  desc: string;
-  tools: { id: ToolId; label: string; desc: string; build: ToolBuild }[];
-}
-
-function buildToolGroup(tabs: { id: ToolId; label: string; desc: string; build: ToolBuild }[]): HTMLElement {
-  const panels: Partial<Record<ToolId, HTMLElement>> = {};
-  for (const tab of tabs) {
-    const result = tab.build();
-    if (result instanceof Promise) {
-      const placeholder = el("div", { class: "tool-panel", id: `panel-${tab.id}` }, [
-        el("div", { class: "control-hint" }, ["Loading..."]),
-      ]);
-      panels[tab.id] = placeholder;
-      result.then((real) => {
-        real.id = `panel-${tab.id}`;
-        real.classList.toggle("active", placeholder.classList.contains("active"));
-        placeholder.replaceWith(real);
-        panels[tab.id] = real;
-      });
-    } else {
-      panels[tab.id] = result;
-    }
-  }
-
-  const tabList = el("div", { class: "tool-tabs", role: "tablist", "aria-label": "Tools in this category" });
-  const indicator = el("div", { class: "tab-indicator" });
-  const tabButtons: Partial<Record<ToolId, HTMLElement>> = {};
-
-  for (const tab of tabs) {
-    const btn = el(
-      "button",
-      {
-        class: "tool-tab",
-        role: "tab",
-        id: `tab-${tab.id}`,
-        "aria-controls": `panel-${tab.id}`,
-        "aria-selected": String(tab.id === tabs[0].id),
-      },
-      [tab.label, el("span", { class: "tool-tab-desc" }, [tab.desc])]
-    );
-    btn.addEventListener("click", () => selectTab(tab.id));
-    tabList.appendChild(btn);
-    tabButtons[tab.id] = btn;
-  }
-  tabList.appendChild(indicator);
-
-  function moveIndicatorTo(id: ToolId) {
-    const btn = tabButtons[id]!;
-    indicator.style.width = `${btn.offsetWidth}px`;
-    indicator.style.transform = `translateX(${btn.offsetLeft}px)`;
-  }
-
-  function selectTab(id: ToolId) {
-    for (const tab of tabs) {
-      tabButtons[tab.id]!.setAttribute("aria-selected", String(tab.id === id));
-      panels[tab.id]!.classList.toggle("active", tab.id === id);
-    }
-    moveIndicatorTo(id);
-  }
-
-  panels[tabs[0].id]!.classList.add("active");
-  const group = el("div", { class: "tool-group" }, [tabList, el("div", {}, tabs.map((t) => panels[t.id]!))]);
-
-  requestAnimationFrame(() => moveIndicatorTo(tabs[0].id));
-  window.addEventListener("resize", () => {
-    const active = tabs.find((t) => tabButtons[t.id]!.getAttribute("aria-selected") === "true")!;
-    moveIndicatorTo(active.id);
-  });
-
-  return group;
-}
-
-function buildWorkspace(): HTMLElement {
-  const categories: Category[] = [
-    {
-      id: "images-video",
-      label: "Images & video",
-      desc: "convert, vectorize, compress",
-      tools: [
-        { id: "convert", label: "Convert", desc: "image formats", build: buildConvertTool },
-        { id: "vectorize", label: "Vectorize", desc: "raster to SVG", build: buildVectorizeTool },
-        { id: "compress", label: "Compress", desc: "images and video", build: buildCompressTool },
-        { id: "video-extra", label: "Video tools", desc: "trim, GIF, extract audio", build: buildVideoExtraTool },
-      ],
-    },
-    {
-      id: "pdf-docs",
-      label: "PDF",
-      desc: "combine, split, render",
-      tools: [{ id: "pdf", label: "PDF tools", desc: "images to PDF, merge, split, render", build: buildPdfTool }],
-    },
-    {
-      id: "audio",
-      label: "Audio",
-      desc: "convert, trim, normalize",
-      tools: [{ id: "audio", label: "Audio tools", desc: "format, bitrate, trim, normalize", build: buildAudioTool }],
-    },
-    {
-      id: "archives",
-      label: "Archives",
-      desc: "zip and unzip",
-      tools: [{ id: "archive", label: "Archive tools", desc: "create and extract zips", build: buildArchiveTool }],
-    },
-  ];
-
-  let activeCategory: CategoryId = "images-video";
-  const groupHost = el("div");
-  const groupCache: Partial<Record<CategoryId, HTMLElement>> = {};
-
-  const catRow = el("div", { class: "category-row", role: "tablist", "aria-label": "Tool categories" });
-  const catButtons: Partial<Record<CategoryId, HTMLElement>> = {};
-
-  for (const cat of categories) {
-    const btn = el(
-      "button",
-      { type: "button", class: "category-pill", "aria-pressed": String(cat.id === activeCategory) },
-      [el("strong", {}, [cat.label]), el("span", {}, [cat.desc])]
-    );
-    btn.addEventListener("click", () => selectCategory(cat.id));
-    catRow.appendChild(btn);
-    catButtons[cat.id] = btn;
-  }
-
-  function selectCategory(id: CategoryId) {
-    activeCategory = id;
-    for (const cat of categories) catButtons[cat.id]!.setAttribute("aria-pressed", String(cat.id === id));
-    clear(groupHost);
-    if (!groupCache[id]) {
-      const cat = categories.find((c) => c.id === id)!;
-      groupCache[id] = buildToolGroup(cat.tools);
-    }
-    groupHost.appendChild(groupCache[id]!);
-  }
-
-  selectCategory(activeCategory);
-
-  const toolCard = el("div", { class: "tool-card" }, [catRow, groupHost]);
-
-  const sideAvatar = el("div", { class: "workspace-avatar", "aria-hidden": "true" });
-  sideAvatar.innerHTML = workspaceAvatarSVG();
-
-  const side = el("aside", { class: "workspace-side" }, [
-    sideAvatar,
-    el("div", { class: "workspace-side-copy" }, [
-      el("strong", {}, ["Nothing leaves this tab"]),
-      el("p", {}, ["Every file here is read, processed and dropped by your browser. No upload, no waiting on a server."]),
-    ]),
-  ]);
-
-  const shell = el("div", { class: "workspace-shell" }, [toolCard, side]);
-
-  return el("section", { class: "workspace", id: "workspace" }, [
-    el("div", { class: "shell" }, [shell]),
   ]);
 }
 
@@ -484,7 +320,7 @@ function footerLinkList(title: string, links: { label: string; onClick: () => vo
   return el("div", { class: "footer-col" }, [el("h4", {}, [title]), el("ul", { class: "footer-col-list" }, items)]);
 }
 
-function buildFooter(onNavigate: (view: View) => void): HTMLElement {
+function buildFooter(onGoToTool: (id: string) => void): HTMLElement {
   const brandMark = el("span", { class: "footer-brand-mark brand-badge" });
   brandMark.innerHTML = brandMarkSVG();
 
@@ -504,10 +340,10 @@ function buildFooter(onNavigate: (view: View) => void): HTMLElement {
   ]);
 
   const productCol = footerLinkList("What Convertly can do", [
-    { label: "Convert image formats", onClick: () => onNavigate("workspace") },
-    { label: "Vectorize (raster to SVG)", onClick: () => onNavigate("workspace") },
-    { label: "Compress images and video", onClick: () => onNavigate("workspace") },
-    { label: "PDF, audio and archive tools", onClick: () => onNavigate("workspace") },
+    { label: "Convert image formats", onClick: () => onGoToTool("convert") },
+    { label: "Vectorize (raster to SVG)", onClick: () => onGoToTool("vectorize") },
+    { label: "Compress images and video", onClick: () => onGoToTool("compress-image") },
+    { label: "PDF, audio and archive tools", onClick: () => onGoToTool("images-to-pdf") },
   ] as { label: string; onClick: () => void }[]);
 
   const openSourceCol = el("div", { class: "footer-col" }, [
@@ -542,108 +378,228 @@ function buildFooter(onNavigate: (view: View) => void): HTMLElement {
   ]);
 }
 
-// ---------------- App shell with a landing view and a separate workspace view ----------------
+// ---------------- App shell: a landing view, a tools hub, and one generic tool-page view
+// that renders whichever module a hub card (or a #/tools/<id> hash) points at. Every module
+// gets its own dedicated page through this single host, so adding a tool is a registry entry,
+// not a new View value, a new host div, and a new hash route. ----------------
+
+interface ToolPageDef {
+  title: string;
+  description: string;
+  icon: ToolIconName;
+  build: () => HTMLElement;
+}
+
+const TOOL_PAGES: Record<string, ToolPageDef> = {
+  convert: {
+    title: "Convert",
+    description: "Change an image's format: PNG, JPEG, WebP, or AVIF. Runs entirely in this tab.",
+    icon: "convert",
+    build: buildConvertFormatTool,
+  },
+  "remove-bg": {
+    title: "Remove background",
+    description: "Cut the background out of any image with a real segmentation model, right in this tab.",
+    icon: "remove-bg",
+    build: buildRemoveBgTool,
+  },
+  vectorize: {
+    title: "Vectorize",
+    description: "Turn a raster image into a clean, scalable SVG using a real tracing engine.",
+    icon: "vectorize",
+    build: buildVectorizeTool,
+  },
+  "compress-image": {
+    title: "Compress image",
+    description: "Shrink a PNG or JPEG's file size with a real re-encode, not a fake progress bar.",
+    icon: "compress-image",
+    build: buildCompressImageTool,
+  },
+  "compress-video": {
+    title: "Compress video",
+    description: "A real FFmpeg re-encode, entirely in this tab, for a genuinely smaller file.",
+    icon: "compress-video",
+    build: buildCompressVideoTool,
+  },
+  trim: {
+    title: "Trim video",
+    description: "Cut a clip down to an exact start and end time.",
+    icon: "trim",
+    build: buildTrimVideoTool,
+  },
+  gif: {
+    title: "Video to GIF",
+    description: "Palette-optimized GIF conversion, not the muddy default most converters produce.",
+    icon: "gif",
+    build: buildVideoToGifTool,
+  },
+  "extract-audio": {
+    title: "Extract audio",
+    description: "Pull a video's audio track out as its own MP3 file.",
+    icon: "extract-audio",
+    build: buildExtractAudioTool,
+  },
+  "replace-audio": {
+    title: "Replace audio",
+    description: "Swap a video's sound for another audio track.",
+    icon: "replace-audio",
+    build: buildReplaceAudioTool,
+  },
+  "images-to-pdf": {
+    title: "Images to PDF",
+    description: "Combine one or more images into a single PDF.",
+    icon: "images-to-pdf",
+    build: buildImagesToPdf,
+  },
+  "pdf-to-images": {
+    title: "PDF to images",
+    description: "Render every page of a PDF as a real PNG.",
+    icon: "pdf-to-images",
+    build: buildPdfToImages,
+  },
+  "merge-pdf": {
+    title: "Merge PDFs",
+    description: "Combine two or more PDFs into a single file, in the order you add them.",
+    icon: "merge-pdf",
+    build: buildMergePdfs,
+  },
+  "split-pdf": {
+    title: "Split PDF",
+    description: "Break a PDF apart into one file per page.",
+    icon: "split-pdf",
+    build: buildSplitPdf,
+  },
+  audio: {
+    title: "Audio tools",
+    description: "Convert format, adjust bitrate, trim, and normalize loudness.",
+    icon: "audio",
+    build: buildAudioTool,
+  },
+  "zip-create": {
+    title: "Create a zip",
+    description: "Compress any file type by bundling it into an archive. Works on anything.",
+    icon: "zip-create",
+    build: buildCreateZip,
+  },
+  "zip-extract": {
+    title: "Extract a zip",
+    description: "Pull the files back out of a zip archive.",
+    icon: "zip-extract",
+    build: buildExtractZip,
+  },
+};
 
 const app = document.getElementById("app")!;
 
 const landingHost = el("div", { class: "view view-landing" });
-const workspaceHost = el("div", { class: "view view-workspace" });
 const toolsHubHost = el("div", { class: "view view-tools-hub" });
-const toolConvertHost = el("div", { class: "view view-tool-convert" });
-
-const HASH_BY_VIEW: Record<View, string> = {
-  landing: "",
-  workspace: "#/app",
-  "tools-hub": "#/tools",
-  "tool-convert": "#/tools/convert",
-};
+const toolPageHost = el("div", { class: "view view-tool-page" });
 
 function showOnly(view: View) {
   landingHost.style.display = view === "landing" ? "" : "none";
-  workspaceHost.style.display = view === "workspace" ? "block" : "none";
   toolsHubHost.style.display = view === "tools-hub" ? "block" : "none";
-  toolConvertHost.style.display = view === "tool-convert" ? "block" : "none";
+  toolPageHost.style.display = view === "tool" ? "block" : "none";
   header.setView(view);
   window.scrollTo(0, 0);
 }
 
-function goTo(view: View) {
+function goTo(view: "landing" | "tools-hub") {
   showOnly(view);
-  window.location.hash = HASH_BY_VIEW[view];
+  window.location.hash = view === "landing" ? "" : "#/tools";
+}
+
+const toolPageCache: Partial<Record<string, HTMLElement>> = {};
+
+function renderToolPage(id: string): boolean {
+  const def = TOOL_PAGES[id];
+  if (!def) return false;
+  clear(toolPageHost);
+  if (!toolPageCache[id]) {
+    toolPageCache[id] = buildToolPage({
+      title: def.title,
+      description: def.description,
+      onBack: () => goTo("tools-hub"),
+      body: def.build(),
+    });
+  }
+  toolPageHost.appendChild(toolPageCache[id]!);
+  return true;
+}
+
+function goToTool(id: string) {
+  if (!renderToolPage(id)) {
+    goTo("tools-hub");
+    return;
+  }
+  showOnly("tool");
+  window.location.hash = `#/tools/${id}`;
 }
 
 const header = buildHeader(goTo);
 const hero = buildHero(() => goTo("tools-hub"));
 const trust = buildTrustSection();
-const workspace = buildWorkspace();
-const footer = buildFooter(goTo);
-
-// ---------------- Redesign in progress: the Tools hub replaces the old tabbed workspace as
-// the front door, one card per module. Only "Convert" is wired to a real, fully redesigned
-// dedicated page so far (this is a direction checkpoint, not the full rollout); every other
-// card still falls back to the legacy tabbed workspace until it gets its own page too. ----
+const footer = buildFooter(goToTool);
 
 const hubCategories: HubCategory[] = [
   {
     title: "Images & video",
     tools: [
-      { id: "convert", label: "Convert", desc: "Change image format: PNG, JPEG, WebP, AVIF.", icon: "convert", onClick: () => goTo("tool-convert") },
-      { id: "remove-bg", label: "Remove background", desc: "Cut out the background of any image.", icon: "remove-bg", onClick: () => goTo("workspace"), legacy: true },
-      { id: "vectorize", label: "Vectorize", desc: "Turn a raster image into a clean SVG.", icon: "vectorize", onClick: () => goTo("workspace"), legacy: true },
-      { id: "compress-image", label: "Compress image", desc: "Shrink a PNG or JPEG's file size.", icon: "compress-image", onClick: () => goTo("workspace"), legacy: true },
-      { id: "compress-video", label: "Compress video", desc: "Real FFmpeg re-encode, smaller file.", icon: "compress-video", onClick: () => goTo("workspace"), legacy: true },
-      { id: "trim", label: "Trim video", desc: "Cut a clip to an exact start and end.", icon: "trim", onClick: () => goTo("workspace"), legacy: true },
-      { id: "gif", label: "Video to GIF", desc: "Palette-optimized, not the muddy default.", icon: "gif", onClick: () => goTo("workspace"), legacy: true },
-      { id: "extract-audio", label: "Extract audio", desc: "Pull a video's audio track out as MP3.", icon: "extract-audio", onClick: () => goTo("workspace"), legacy: true },
-      { id: "replace-audio", label: "Replace audio", desc: "Swap a video's sound for another track.", icon: "replace-audio", onClick: () => goTo("workspace"), legacy: true },
+      { id: "convert", label: "Convert", desc: "Change image format: PNG, JPEG, WebP, AVIF.", icon: "convert", onClick: () => goToTool("convert") },
+      { id: "remove-bg", label: "Remove background", desc: "Cut out the background of any image.", icon: "remove-bg", onClick: () => goToTool("remove-bg") },
+      { id: "vectorize", label: "Vectorize", desc: "Turn a raster image into a clean SVG.", icon: "vectorize", onClick: () => goToTool("vectorize") },
+      { id: "compress-image", label: "Compress image", desc: "Shrink a PNG or JPEG's file size.", icon: "compress-image", onClick: () => goToTool("compress-image") },
+      { id: "compress-video", label: "Compress video", desc: "Real FFmpeg re-encode, smaller file.", icon: "compress-video", onClick: () => goToTool("compress-video") },
+      { id: "trim", label: "Trim video", desc: "Cut a clip to an exact start and end.", icon: "trim", onClick: () => goToTool("trim") },
+      { id: "gif", label: "Video to GIF", desc: "Palette-optimized, not the muddy default.", icon: "gif", onClick: () => goToTool("gif") },
+      { id: "extract-audio", label: "Extract audio", desc: "Pull a video's audio track out as MP3.", icon: "extract-audio", onClick: () => goToTool("extract-audio") },
+      { id: "replace-audio", label: "Replace audio", desc: "Swap a video's sound for another track.", icon: "replace-audio", onClick: () => goToTool("replace-audio") },
     ],
   },
   {
     title: "PDF",
     tools: [
-      { id: "images-to-pdf", label: "Images to PDF", desc: "Combine images into one PDF.", icon: "images-to-pdf", onClick: () => goTo("workspace"), legacy: true },
-      { id: "pdf-to-images", label: "PDF to images", desc: "Render every page as a real PNG.", icon: "pdf-to-images", onClick: () => goTo("workspace"), legacy: true },
-      { id: "merge-pdf", label: "Merge PDFs", desc: "Combine two or more PDFs into one.", icon: "merge-pdf", onClick: () => goTo("workspace"), legacy: true },
-      { id: "split-pdf", label: "Split PDF", desc: "Break a PDF into one file per page.", icon: "split-pdf", onClick: () => goTo("workspace"), legacy: true },
+      { id: "images-to-pdf", label: "Images to PDF", desc: "Combine images into one PDF.", icon: "images-to-pdf", onClick: () => goToTool("images-to-pdf") },
+      { id: "pdf-to-images", label: "PDF to images", desc: "Render every page as a real PNG.", icon: "pdf-to-images", onClick: () => goToTool("pdf-to-images") },
+      { id: "merge-pdf", label: "Merge PDFs", desc: "Combine two or more PDFs into one.", icon: "merge-pdf", onClick: () => goToTool("merge-pdf") },
+      { id: "split-pdf", label: "Split PDF", desc: "Break a PDF into one file per page.", icon: "split-pdf", onClick: () => goToTool("split-pdf") },
     ],
   },
   {
     title: "Audio",
     tools: [
-      { id: "audio", label: "Audio tools", desc: "Convert, trim, and normalize loudness.", icon: "audio", onClick: () => goTo("workspace"), legacy: true },
+      { id: "audio", label: "Audio tools", desc: "Convert, trim, and normalize loudness.", icon: "audio", onClick: () => goToTool("audio") },
     ],
   },
   {
     title: "Archives",
     tools: [
-      { id: "zip-create", label: "Create a zip", desc: "Compress any file type by bundling it into an archive.", icon: "zip-create", onClick: () => goTo("workspace"), legacy: true },
-      { id: "zip-extract", label: "Extract a zip", desc: "Pull files back out of an archive.", icon: "zip-extract", onClick: () => goTo("workspace"), legacy: true },
+      { id: "zip-create", label: "Create a zip", desc: "Compress any file type by bundling it into an archive.", icon: "zip-create", onClick: () => goToTool("zip-create") },
+      { id: "zip-extract", label: "Extract a zip", desc: "Pull files back out of an archive.", icon: "zip-extract", onClick: () => goToTool("zip-extract") },
     ],
   },
 ];
 
 const toolsHub = buildToolsHub(hubCategories);
-const toolConvertPage = buildToolPage({
-  title: "Convert",
-  description: "Change an image's format: PNG, JPEG, WebP, or AVIF. Runs entirely in this tab.",
-  onBack: () => goTo("tools-hub"),
-  body: buildConvertTool(),
-});
 
 landingHost.append(hero, trust);
-workspaceHost.append(workspace);
 toolsHubHost.append(toolsHub);
-toolConvertHost.append(toolConvertPage);
 
-app.append(header.root, landingHost, workspaceHost, toolsHubHost, toolConvertHost, footer);
+app.append(header.root, landingHost, toolsHubHost, toolPageHost, footer);
 
-const hash = window.location.hash;
-if (hash.startsWith("#/tools/convert")) {
-  goTo("tool-convert");
-} else if (hash.startsWith("#/tools")) {
-  goTo("tools-hub");
-} else if (hash.startsWith("#/app")) {
-  goTo("workspace");
-} else {
-  goTo("landing");
+// Reads the current hash and shows the matching view. Used at startup and again on every
+// hashchange, so the browser's back/forward buttons and hand-typed #/tools/<id> links work,
+// not just the in-app card and nav clicks (which already call goTo/goToTool directly).
+function applyHash() {
+  const hash = window.location.hash;
+  const toolMatch = /^#\/tools\/([\w-]+)/.exec(hash);
+  if (toolMatch && renderToolPage(toolMatch[1])) {
+    showOnly("tool");
+  } else if (hash.startsWith("#/tools")) {
+    showOnly("tools-hub");
+  } else {
+    showOnly("landing");
+  }
 }
+
+window.addEventListener("hashchange", applyHash);
+applyHash();

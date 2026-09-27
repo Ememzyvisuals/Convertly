@@ -17,7 +17,7 @@ const PRESETS: Record<Detail, { colorCount: number; smoothing: number; noiseRedu
 };
 
 export function buildVectorizeTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel", id: "panel-vectorize" });
+  const root = el("div");
 
   let currentFile: File | null = null;
   let detail: Detail = "balanced";

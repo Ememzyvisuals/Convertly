@@ -10,46 +10,14 @@ import type { DetectedKind } from "../lib/validate";
 import { getUsageStatus, recordCompletedOperation } from "../lib/usageLimit";
 import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 
-type SubMode = "image" | "video";
-
-export function buildCompressTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel", id: "panel-compress" });
-
-  let subMode: SubMode = "image";
-  const subSwitch = segmentedControl<SubMode>(
-    "File type",
-    [
-      { value: "image", label: "Images" },
-      { value: "video", label: "Video" },
-    ],
-    subMode,
-    (v) => {
-      subMode = v;
-      renderSub();
-    }
-  );
-
-  const otherFilesNote = el("div", { class: "control-hint", style: "margin-bottom:22px" }, [
-    "This tool re-encodes images and video specifically. For any other file type, use Create a zip in Archives, zipping shrinks most files and works on anything.",
-  ]);
-
-  const subHost = el("div");
-
-  function renderSub() {
-    subSwitch.setValue(subMode);
-    clear(subHost);
-    subHost.appendChild(subMode === "image" ? buildImageCompress() : buildVideoCompress());
-  }
-
-  root.append(subSwitch.root, otherFilesNote, subHost);
-  renderSub();
-  return root;
-}
-
 // ---------------- Image compression ----------------
 
-function buildImageCompress(): HTMLElement {
+export function buildCompressImageTool(): HTMLElement {
   const wrap = el("div");
+  const otherFilesNote = el("div", { class: "control-hint", style: "margin-bottom:22px" }, [
+    "This tool re-encodes images specifically. For any other file type, use Create a zip in Archives, zipping shrinks most files and works on anything.",
+  ]);
+  wrap.appendChild(otherFilesNote);
   let currentFile: File | null = null;
   let format: "jpeg" | "webp" | "png" = "jpeg";
   let quality = 0.75;
@@ -235,7 +203,7 @@ async function runImageCompress(
 
 // ---------------- Video compression ----------------
 
-function buildVideoCompress(): HTMLElement {
+export function buildCompressVideoTool(): HTMLElement {
   const wrap = el("div");
   let currentFile: File | null = null;
   let codec: VideoCodec = "h264";
@@ -246,6 +214,10 @@ function buildVideoCompress(): HTMLElement {
 
   const bodyHost = el("div");
   const processArea = el("div");
+
+  const otherFilesNote = el("div", { class: "control-hint", style: "margin-bottom:18px" }, [
+    "This tool re-encodes video specifically. For any other file type, use Create a zip in Archives, zipping shrinks most files and works on anything.",
+  ]);
 
   const engineNote = el("div", { class: "control-hint", style: "margin-bottom:18px" }, [
     "Runs a real FFmpeg build compiled to WebAssembly, entirely in this tab. The engine (~30 MB) loads once you press Compress. Large files need real time and enough device memory. Very large videos on low-memory phones may fail, and you'll get an honest error rather than a fake result.",
@@ -370,7 +342,7 @@ function buildVideoCompress(): HTMLElement {
   }
 
   const usage = createUsageStrip();
-  wrap.append(engineNote, uploader.root, bodyHost, processArea, usage.root);
+  wrap.append(otherFilesNote, engineNote, uploader.root, bodyHost, processArea, usage.root);
   return wrap;
 }
 

@@ -10,12 +10,11 @@ import { removeBackground } from "../lib/bgRemoval";
 import { getUsageStatus, recordCompletedOperation } from "../lib/usageLimit";
 import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 
-type Mode = "convert" | "remove-bg";
+// ---------------- Convert format ----------------
 
-export function buildConvertTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel active", id: "panel-convert" });
+export function buildConvertFormatTool(): HTMLElement {
+  const root = el("div", { class: "tool-panel active" });
 
-  let mode: Mode = "convert";
   let format: OutputFormat = "png";
   let quality = 0.85;
   let currentFile: File | null = null;
@@ -24,24 +23,13 @@ export function buildConvertTool(): HTMLElement {
   canEncode("image/avif").then((supported) => {
     avifSupported = supported;
     if (!supported && format === "avif") format = "png";
-    render();
+    if (currentFile) renderBody(currentFile);
   });
-
-  const modeSwitch = segmentedControl<Mode>(
-    "What do you want to do",
-    [
-      { value: "convert", label: "Convert format" },
-      { value: "remove-bg", label: "Remove background" },
-    ],
-    mode,
-    (v) => {
-      mode = v;
-      render();
-    }
-  );
 
   const uploaderHost = el("div");
   const bodyHost = el("div");
+  const processArea = el("div");
+  const usage = createUsageStrip();
 
   function makeUploader() {
     clear(uploaderHost);
@@ -51,28 +39,18 @@ export function buildConvertTool(): HTMLElement {
       inputAccept: "image/png,image/jpeg,image/webp,image/avif,image/gif,image/bmp",
       onFileReady: (file) => {
         currentFile = file;
-        renderBody();
+        renderBody(file);
       },
       onCleared: () => {
         currentFile = null;
-        renderBody();
+        clear(bodyHost);
+        clear(processArea);
       },
     });
     uploaderHost.appendChild(uploader.root);
   }
 
-  function renderBody() {
-    clear(bodyHost);
-    if (!currentFile) return;
-
-    if (mode === "convert") {
-      renderConvertBody(currentFile);
-    } else {
-      renderBgRemovalBody(currentFile);
-    }
-  }
-
-  function renderConvertBody(file: File) {
+  function renderBody(file: File) {
     clear(bodyHost);
     const formatOptions: { value: OutputFormat; label: string }[] = [
       { value: "png", label: "PNG" },
@@ -87,7 +65,7 @@ export function buildConvertTool(): HTMLElement {
       format,
       (v) => {
         format = v;
-        renderConvertBody(file);
+        renderBody(file);
       },
       format === "jpeg" ? "Transparency will be flattened onto white. JPEG has no alpha channel." : undefined
     );
@@ -175,7 +153,45 @@ export function buildConvertTool(): HTMLElement {
     }
   }
 
-  function renderBgRemovalBody(file: File) {
+  function replaceProcessArea(node: HTMLElement) {
+    clear(processArea);
+    processArea.appendChild(node);
+  }
+
+  makeUploader();
+  root.append(uploaderHost, bodyHost, processArea, usage.root);
+  return root;
+}
+
+// ---------------- Remove background ----------------
+
+export function buildRemoveBgTool(): HTMLElement {
+  const root = el("div", { class: "tool-panel active" });
+
+  const uploaderHost = el("div");
+  const bodyHost = el("div");
+  const processArea = el("div");
+  const usage = createUsageStrip();
+
+  function makeUploader() {
+    clear(uploaderHost);
+    const uploader = createUploader({
+      accept: ["png", "jpeg", "webp", "gif", "bmp", "avif"],
+      acceptLabel: "PNG · JPEG · WebP · AVIF · GIF · BMP",
+      inputAccept: "image/png,image/jpeg,image/webp,image/avif,image/gif,image/bmp",
+      onFileReady: (file) => {
+        renderBody(file);
+      },
+      onCleared: () => {
+        clear(bodyHost);
+        clear(processArea);
+      },
+    });
+    uploaderHost.appendChild(uploader.root);
+  }
+
+  function renderBody(file: File) {
+    clear(bodyHost);
     const note = el("div", { class: "control-hint" }, [
       "Uses a real segmentation model that runs in your browser. On first use it downloads the model (about 15 to 20 MB) from IMG.LY's CDN. Everything after that runs locally.",
     ]);
@@ -234,7 +250,6 @@ export function buildConvertTool(): HTMLElement {
           honestyNote:
             "Background removal is model-based and can make mistakes around fine detail (hair, fur, glass). Check the edges before using the result.",
           onRunAnother: () => {
-            currentFile = null;
             makeUploader();
             clear(bodyHost);
           },
@@ -245,22 +260,13 @@ export function buildConvertTool(): HTMLElement {
     }
   }
 
-  const processArea = el("div");
   function replaceProcessArea(node: HTMLElement) {
     clear(processArea);
     processArea.appendChild(node);
   }
 
-  const usage = createUsageStrip();
-
-  function render() {
-    clear(root);
-    modeSwitch.setValue(mode);
-    root.append(modeSwitch.root, uploaderHost, bodyHost, processArea, usage.root);
-    if (!uploaderHost.hasChildNodes()) makeUploader();
-  }
-
-  render();
+  makeUploader();
+  root.append(uploaderHost, bodyHost, processArea, usage.root);
   return root;
 }
 

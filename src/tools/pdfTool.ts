@@ -9,50 +9,13 @@ import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 import { imagesToPdf, pdfToImages, mergePdfs, splitPdf, getPdfPageCount } from "../lib/pdfTools";
 import { filesToZip } from "../lib/archiveTools";
 
-type SubMode = "img2pdf" | "pdf2img" | "merge" | "split";
-
-export function buildPdfTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel", id: "panel-pdf" });
-
-  let mode: SubMode = "img2pdf";
-  const modeSwitch = segmentedControl<SubMode>(
-    "What do you want to do",
-    [
-      { value: "img2pdf", label: "Images to PDF" },
-      { value: "pdf2img", label: "PDF to images" },
-      { value: "merge", label: "Merge PDFs" },
-      { value: "split", label: "Split PDF" },
-    ],
-    mode,
-    (v) => {
-      mode = v;
-      renderSub();
-    }
-  );
-
-  const subHost = el("div");
-
-  function renderSub() {
-    modeSwitch.setValue(mode);
-    clear(subHost);
-    if (mode === "img2pdf") subHost.appendChild(buildImagesToPdf());
-    else if (mode === "pdf2img") subHost.appendChild(buildPdfToImages());
-    else if (mode === "merge") subHost.appendChild(buildMergePdfs());
-    else subHost.appendChild(buildSplitPdf());
-  }
-
-  root.append(modeSwitch.root, subHost);
-  renderSub();
-  return root;
-}
-
 function errorBox(message: string): HTMLElement {
   return el("div", { class: "validation-error" }, [el("strong", {}, ["Something went wrong. "]), message]);
 }
 
 // ---------------- Images to PDF ----------------
 
-function buildImagesToPdf(): HTMLElement {
+export function buildImagesToPdf(): HTMLElement {
   const wrap = el("div");
   let files: File[] = [];
   let pageMode: "fit" | "native" = "fit";
@@ -131,7 +94,7 @@ function buildImagesToPdf(): HTMLElement {
 
 // ---------------- PDF to images ----------------
 
-function buildPdfToImages(): HTMLElement {
+export function buildPdfToImages(): HTMLElement {
   const wrap = el("div");
   let currentFile: File | null = null;
   let scale = 2;
@@ -236,7 +199,7 @@ function buildPdfToImages(): HTMLElement {
 
 // ---------------- Merge PDFs ----------------
 
-function buildMergePdfs(): HTMLElement {
+export function buildMergePdfs(): HTMLElement {
   const wrap = el("div");
   let files: File[] = [];
   const processArea = el("div");
@@ -301,7 +264,7 @@ function buildMergePdfs(): HTMLElement {
 
 // ---------------- Split PDF ----------------
 
-function buildSplitPdf(): HTMLElement {
+export function buildSplitPdf(): HTMLElement {
   const wrap = el("div");
   const processArea = el("div");
   const usage = createUsageStrip();

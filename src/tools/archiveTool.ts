@@ -1,43 +1,11 @@
 import { el, clear } from "../ui/dom";
 import { createUploader, createMultiUploader } from "../ui/upload";
-import { segmentedControl } from "../ui/controls";
 import { createProcessPanel } from "../ui/processPanel";
 import { formatBytes, triggerDownload } from "../lib/format";
 import type { DetectedKind } from "../lib/validate";
 import { getUsageStatus, recordCompletedOperation } from "../lib/usageLimit";
 import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 import { filesToZip, extractZip, type ExtractedEntry } from "../lib/archiveTools";
-
-type SubMode = "create" | "extract";
-
-export function buildArchiveTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel", id: "panel-archive" });
-
-  let mode: SubMode = "create";
-  const modeSwitch = segmentedControl<SubMode>(
-    "What do you want to do",
-    [
-      { value: "create", label: "Create a zip" },
-      { value: "extract", label: "Extract a zip" },
-    ],
-    mode,
-    (v) => {
-      mode = v;
-      renderSub();
-    }
-  );
-
-  const subHost = el("div");
-  function renderSub() {
-    modeSwitch.setValue(mode);
-    clear(subHost);
-    subHost.appendChild(mode === "create" ? buildCreateZip() : buildExtractZip());
-  }
-
-  root.append(modeSwitch.root, subHost);
-  renderSub();
-  return root;
-}
 
 function errorBox(message: string): HTMLElement {
   return el("div", { class: "validation-error" }, [el("strong", {}, ["Something went wrong. "]), message]);
@@ -67,7 +35,7 @@ const ANY_KIND: DetectedKind[] = [
   "mp3", "wav", "ogg", "flac", "m4a",
 ];
 
-function buildCreateZip(): HTMLElement {
+export function buildCreateZip(): HTMLElement {
   const wrap = el("div");
   let files: File[] = [];
   const processArea = el("div");
@@ -143,7 +111,7 @@ function buildCreateZip(): HTMLElement {
 
 // ---------------- Extract zip ----------------
 
-function buildExtractZip(): HTMLElement {
+export function buildExtractZip(): HTMLElement {
   const wrap = el("div");
   const processArea = el("div");
   const usage = createUsageStrip();

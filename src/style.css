@@ -573,17 +573,7 @@ button {
   .hero-visual-wrap { animation: none; opacity: 1; }
 }
 
-/* ---------- Workspace ---------- */
-
-.workspace { padding: 52px 0 90px; }
-
-.workspace-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 640px) 220px;
-  gap: 36px;
-  align-items: start;
-  justify-content: center;
-}
+/* ---------- Tool page card ---------- */
 
 .tool-card {
   background: var(--bg-raised);
@@ -595,98 +585,6 @@ button {
 
 @media (max-width: 480px) {
   .tool-card { padding: 18px 16px 24px; }
-}
-
-.workspace-side {
-  position: sticky;
-  top: 96px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  padding: 26px 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--bg-inset);
-  text-align: center;
-}
-
-.workspace-avatar { width: 132px; }
-.workspace-avatar svg { width: 100%; height: auto; display: block; }
-
-.workspace-side-copy strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-.workspace-side-copy p {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--text-faint);
-}
-
-@media (max-width: 1000px) {
-  .workspace-shell { grid-template-columns: minmax(0, 640px); justify-content: center; }
-  .workspace-side { display: none; }
-}
-
-.tool-tabs {
-  position: relative;
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 28px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.tool-tabs::-webkit-scrollbar { display: none; }
-
-.tool-tab {
-  appearance: none;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-muted);
-  font-size: 15px;
-  font-weight: 500;
-  padding: 12px 4px;
-  margin-right: 28px;
-  cursor: pointer;
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  white-space: nowrap;
-  flex: none;
-  transition: color 0.16s ease;
-}
-
-.tool-tab .tool-tab-desc {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-faint);
-  font-family: var(--font-body);
-}
-
-.tool-tab[aria-selected="true"] {
-  color: var(--text);
-  border-bottom-color: transparent; /* the sliding indicator draws this instead */
-}
-
-.tool-tab:hover:not([aria-selected="true"]) { color: var(--text); }
-
-.tab-indicator {
-  position: absolute;
-  bottom: -1px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 1px;
-  transition: transform 0.28s cubic-bezier(0.65, 0, 0.35, 1), width 0.28s cubic-bezier(0.65, 0, 0.35, 1);
-  will-change: transform, width;
-}
-@media (prefers-reduced-motion: reduce) {
-  .tab-indicator { transition: none; }
 }
 
 .tool-panel { display: none; }
@@ -1600,51 +1498,6 @@ select, .checkbox-row {
   .tool-page { padding: 28px 0 70px; }
   .tool-page-header { margin-bottom: 26px; }
 }
-
-/* ---------------- Category navigation (workspace, top of tool-card) ---------------- */
-
-.category-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-
-.category-pill {
-  appearance: none;
-  cursor: pointer;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 16px;
-  border: 1px solid var(--line);
-  background: var(--bg-inset);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
-  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
-}
-
-.category-pill strong {
-  font-size: 14px;
-  color: inherit;
-  font-weight: 600;
-}
-
-.category-pill span {
-  font-size: 11.5px;
-  color: var(--text-faint);
-}
-
-.category-pill:hover { border-color: var(--line-strong); }
-
-.category-pill[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--accent) 10%, var(--bg-raised));
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
-  color: var(--text);
-}
-
-.tool-group { min-width: 0; }
 
 /* ---------------- Multi-file uploader (PDF merge, images-to-PDF, zip creation) ---------------- */
 

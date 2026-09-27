@@ -1,6 +1,6 @@
 import { el, clear } from "../ui/dom";
 import { createUploader } from "../ui/upload";
-import { segmentedControl, rangeControl } from "../ui/controls";
+import { rangeControl } from "../ui/controls";
 import { createProcessPanel } from "../ui/processPanel";
 import { renderResultPanel } from "../ui/resultPanel";
 import { trimVideo, videoToGif, extractAudioFromVideo, replaceVideoAudio, getVideoDuration } from "../lib/videoTools";
@@ -9,50 +9,16 @@ import type { DetectedKind } from "../lib/validate";
 import { getUsageStatus, recordCompletedOperation } from "../lib/usageLimit";
 import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 
-type SubMode = "trim" | "gif" | "extract-audio" | "replace-audio";
-
 const ACCEPT: DetectedKind[] = ["mp4", "webm", "mov", "mkv", "avi"];
 const INPUT_ACCEPT = "video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo";
 const AUDIO_OR_VIDEO_ACCEPT: DetectedKind[] = ["mp3", "wav", "ogg", "flac", "m4a", "mp4", "webm", "mov", "mkv", "avi"];
 const AUDIO_OR_VIDEO_INPUT_ACCEPT =
   "audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/mp4,audio/x-m4a,video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo";
 
-export function buildVideoExtraTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel", id: "panel-video-extra" });
-
-  let mode: SubMode = "trim";
-  const modeSwitch = segmentedControl<SubMode>(
-    "What do you want to do",
-    [
-      { value: "trim", label: "Trim" },
-      { value: "gif", label: "Video to GIF" },
-      { value: "extract-audio", label: "Extract audio" },
-      { value: "replace-audio", label: "Replace audio" },
-    ],
-    mode,
-    (v) => {
-      mode = v;
-      renderSub();
-    }
-  );
-
-  const engineNote = el("div", { class: "control-hint", style: "margin-bottom:18px" }, [
+function engineNoteEl(): HTMLElement {
+  return el("div", { class: "control-hint", style: "margin-bottom:18px" }, [
     "Runs the same real FFmpeg WebAssembly build used for video compression, entirely in this tab.",
   ]);
-
-  const subHost = el("div");
-  function renderSub() {
-    modeSwitch.setValue(mode);
-    clear(subHost);
-    if (mode === "trim") subHost.appendChild(buildTrim());
-    else if (mode === "gif") subHost.appendChild(buildGif());
-    else if (mode === "extract-audio") subHost.appendChild(buildExtractAudio());
-    else subHost.appendChild(buildReplaceAudio());
-  }
-
-  root.append(modeSwitch.root, engineNote, subHost);
-  renderSub();
-  return root;
 }
 
 function errorBox(message: string): HTMLElement {
@@ -61,7 +27,7 @@ function errorBox(message: string): HTMLElement {
 
 // ---------------- Trim ----------------
 
-function buildTrim(): HTMLElement {
+export function buildTrimVideoTool(): HTMLElement {
   const wrap = el("div");
   let currentFile: File | null = null;
   let duration = 0;
@@ -164,13 +130,13 @@ function buildTrim(): HTMLElement {
     }
   }
 
-  wrap.append(uploader.root, bodyHost, processArea, usage.root);
+  wrap.append(engineNoteEl(), uploader.root, bodyHost, processArea, usage.root);
   return wrap;
 }
 
 // ---------------- Video to GIF ----------------
 
-function buildGif(): HTMLElement {
+export function buildVideoToGifTool(): HTMLElement {
   const wrap = el("div");
   let currentFile: File | null = null;
   let duration = 0;
@@ -302,13 +268,13 @@ function buildGif(): HTMLElement {
     }
   }
 
-  wrap.append(uploader.root, bodyHost, processArea, usage.root);
+  wrap.append(engineNoteEl(), uploader.root, bodyHost, processArea, usage.root);
   return wrap;
 }
 
 // ---------------- Extract audio ----------------
 
-function buildExtractAudio(): HTMLElement {
+export function buildExtractAudioTool(): HTMLElement {
   const wrap = el("div");
   const processArea = el("div");
   const usage = createUsageStrip();
@@ -361,13 +327,13 @@ function buildExtractAudio(): HTMLElement {
     }
   }
 
-  wrap.append(uploader.root, processArea, usage.root);
+  wrap.append(engineNoteEl(), uploader.root, processArea, usage.root);
   return wrap;
 }
 
 // ---------------- Replace audio ----------------
 
-function buildReplaceAudio(): HTMLElement {
+export function buildReplaceAudioTool(): HTMLElement {
   const wrap = el("div");
   let videoFile: File | null = null;
   let audioFile: File | null = null;
@@ -467,6 +433,6 @@ function buildReplaceAudio(): HTMLElement {
     }
   }
 
-  wrap.append(videoLabel, videoUploader.root, audioLabel, audioUploader.root, bodyHost, processArea, usage.root);
+  wrap.append(engineNoteEl(), videoLabel, videoUploader.root, audioLabel, audioUploader.root, bodyHost, processArea, usage.root);
   return wrap;
 }

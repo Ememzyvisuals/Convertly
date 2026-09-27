@@ -10,7 +10,7 @@ import { getUsageStatus, recordCompletedOperation } from "../lib/usageLimit";
 import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 
 export function buildAudioTool(): HTMLElement {
-  const root = el("div", { class: "tool-panel", id: "panel-audio" });
+  const root = el("div");
 
   let currentFile: File | null = null;
   let sourceDuration = 0;
