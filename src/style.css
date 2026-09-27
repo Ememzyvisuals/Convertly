@@ -22,9 +22,9 @@
   --checker: #1e1e1e;
   --shadow-strength: 0.45;
 
-  --font-display: "Outfit", -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fredoka", "Outfit", -apple-system, "Segoe UI", sans-serif;
   --font-body: "Outfit", -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-mono: "Outfit", -apple-system, "Segoe UI", sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -271,22 +271,22 @@ button {
   animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
 }
 
-/* A quiet trust bar under the CTA, not a set of floating badges: three short facts in a
-   row, separated by rules rather than cards, so it reads as supporting detail instead of
-   competing decoration. */
+/* A quiet trust bar under the CTA: three feature chips, each with a small icon bubble in
+   the same style as the tools hub cards, so it reads as a designed piece rather than a
+   plain row of text columns. */
 .hero-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
-  margin-top: 44px;
-  padding-top: 26px;
+  gap: 14px;
+  margin-top: 40px;
+  padding-top: 28px;
   border-top: 1px solid var(--line);
   opacity: 0;
   animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
 }
 
 @media (max-width: 640px) {
-  .hero-facts { grid-template-columns: 1fr; gap: 18px; }
+  .hero-facts { grid-template-columns: 1fr; gap: 10px; }
 }
 
 @keyframes hero-rise {
@@ -302,20 +302,40 @@ button {
 }
 
 .hero-fact {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  transition: background 0.16s ease;
+}
+.hero-fact:hover { background: var(--bg-raised); }
+
+.hero-fact-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.hero-fact > div {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-faint);
-  max-width: 26ch;
+  max-width: 24ch;
 }
 
 .hero-fact strong {
   display: block;
   color: var(--text);
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 11.5px;
-  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
 }
 
 .hero-cta {
@@ -358,13 +378,13 @@ button {
   user-select: none;
   white-space: nowrap;
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 700;
   font-size: clamp(52px, 9vw, 92px);
   line-height: 0.9;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   color: var(--accent);
-  opacity: 0.12;
+  opacity: 0.14;
 }
 :root[data-theme="light"] .hero-bg-word { opacity: 0.1; }
 

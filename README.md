@@ -351,10 +351,11 @@ Every existing tool follows the same shape, and any new tool (see the
   language is based on.
 - **Borders and muted text use alpha-based `rgba()` values**, not solid grays, again
   following the same source design system.
-- **Font is self-hosted** via `@fontsource/outfit` and `@fontsource/jetbrains-mono`
+- **Font is self-hosted** via `@fontsource/outfit` and `@fontsource/fredoka`
   (imported directly in `main.ts`), not loaded from Google Fonts' CDN. This was a
   deliberate fix, an external font CDN dependency previously caused fonts to silently
-  fail to render in constrained/offline test environments.
+  fail to render in constrained/offline test environments. Outfit carries body copy
+  and UI chrome, Fredoka is used only for headings and big display typography.
 - **No em dashes anywhere**, in code comments, UI copy, or this README. Use a period or
   a comma instead. This is a standing style rule for the project, not a one-off request.
 - **No fake data, ever.** Every number shown in the UI (file size, processing time,

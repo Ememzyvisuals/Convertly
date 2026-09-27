@@ -2,10 +2,10 @@ import "@fontsource/outfit/400.css";
 import "@fontsource/outfit/500.css";
 import "@fontsource/outfit/600.css";
 import "@fontsource/outfit/700.css";
-import "@fontsource/outfit/800.css";
-import "@fontsource/jetbrains-mono/400.css";
-import "@fontsource/jetbrains-mono/500.css";
-import "@fontsource/jetbrains-mono/600.css";
+import "@fontsource/fredoka/400.css";
+import "@fontsource/fredoka/500.css";
+import "@fontsource/fredoka/600.css";
+import "@fontsource/fredoka/700.css";
 import "./style.css";
 import { el, clear } from "./ui/dom";
 import { buildConvertTool } from "./tools/convertTool";
@@ -67,6 +67,28 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
   return { root, setView };
 }
 
+function heroFactIconSVG(name: "no-account" | "runs-locally" | "real-engines"): string {
+  const common = 'viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
+  switch (name) {
+    case "no-account":
+      return `<svg ${common}><rect x="5" y="11" width="14" height="9" rx="2.4"/><path d="M8 11V7.5a4 4 0 0 1 7.5-2"/></svg>`;
+    case "runs-locally":
+      return `<svg ${common}><rect x="3" y="5" width="18" height="14" rx="2.2"/><path d="M3 9.5h18"/><circle cx="6.3" cy="7.2" r="0.6" fill="currentColor" stroke="none"/></svg>`;
+    case "real-engines":
+    default:
+      return `<svg ${common}><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2.6M12 17.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M3.5 12h2.6M17.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>`;
+  }
+}
+
+function heroFact(icon: "no-account" | "runs-locally" | "real-engines", title: string, body: string): HTMLElement {
+  const iconBubble = el("span", { class: "hero-fact-icon" });
+  iconBubble.innerHTML = heroFactIconSVG(icon);
+  return el("div", { class: "hero-fact" }, [
+    iconBubble,
+    el("div", {}, [el("strong", {}, [title]), el("span", {}, [body])]),
+  ]);
+}
+
 function buildHero(onGetStarted: () => void): HTMLElement {
   const bgWord = el("div", { class: "hero-bg-word", "aria-hidden": "true" }, ["LIGHTER"]);
 
@@ -91,9 +113,9 @@ function buildHero(onGetStarted: () => void): HTMLElement {
         ]),
         el("div", { class: "hero-cta-row" }, [getStartedBtn]),
         el("div", { class: "hero-facts" }, [
-          el("div", { class: "hero-fact" }, [el("strong", {}, ["No account"]), "Nothing to sign up for, nothing to pay for."]),
-          el("div", { class: "hero-fact" }, [el("strong", {}, ["Runs locally"]), "Files are processed in your browser and never leave your device."]),
-          el("div", { class: "hero-fact" }, [el("strong", {}, ["Real engines"]), "FFmpeg, canvas codecs, and a real tracing engine. No faked results."]),
+          heroFact("no-account", "No account", "Nothing to sign up for, nothing to pay for."),
+          heroFact("runs-locally", "Runs locally", "Files are processed in your browser and never leave your device."),
+          heroFact("real-engines", "Real engines", "FFmpeg, canvas codecs, and a real tracing engine. No faked results."),
         ]),
       ]),
       visual,
