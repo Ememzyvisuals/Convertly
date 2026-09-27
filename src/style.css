@@ -1395,49 +1395,60 @@ select, .checkbox-row {
 .hub-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 18px 14px;
-  margin-top: 16px;
+  gap: 26px 16px;
+  margin-top: 22px;
 }
 
-/* A file-folder silhouette: a small tab grows out of the card's top-left corner, the way a
- * manila folder's index tab sits above its body. Built from the card itself (flush top-left
- * corner) plus one pseudo-element for the tab, both sharing the card's own background and
- * border so they read as a single cut-out shape rather than two stacked rectangles. */
+/* A file-folder silhouette, built to read as an actual lifted piece of paper rather than a
+ * flat rectangle with a notch cut in it: a soft top-lit gradient and a real drop shadow on
+ * the body, and a separate index tab (its own gradient, its own small shadow) inset from the
+ * left edge the way a physical folder's tab sits along its spine, not flush at the corner. */
 .hub-card {
   appearance: none;
   text-align: left;
   position: relative;
-  background: var(--bg-raised);
+  background: linear-gradient(165deg, var(--bg-hover) 0%, var(--bg-raised) 65%);
   border: 1px solid var(--line);
-  border-radius: 4px var(--radius-md) var(--radius-md) var(--radius-md);
+  border-radius: var(--radius-md);
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
   cursor: pointer;
-  transition: border-color 0.16s ease, transform 0.16s ease, background 0.16s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 28px -12px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.9));
+  transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 .hub-card::before {
   content: "";
   position: absolute;
-  top: -11px;
-  left: -1px;
-  width: 42%;
-  min-width: 56px;
-  height: 12px;
-  background: inherit;
+  top: -10px;
+  left: 18px;
+  width: 34%;
+  min-width: 52px;
+  max-width: 108px;
+  height: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, var(--bg-hover)), var(--bg-raised));
   border: 1px solid var(--line);
   border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  transition: border-color 0.16s ease;
+  border-radius: 9px 9px 0 0;
+  box-shadow: 0 -3px 8px -4px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.7));
+  transition: border-color 0.18s ease, background 0.18s ease;
 }
 .hub-card:hover {
   border-color: var(--accent);
-  transform: translateY(-2px);
-  background: var(--bg-hover);
+  transform: translateY(-3px);
+  background: linear-gradient(165deg, var(--bg-hover) 0%, color-mix(in srgb, var(--accent) 4%, var(--bg-raised)) 65%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 22px 40px -14px rgba(0, 0, 0, calc(var(--shadow-strength) * 1.1));
 }
-.hub-card:hover::before { border-color: var(--accent); }
+.hub-card:hover::before {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, var(--bg-hover)), var(--bg-raised));
+}
 .hub-card-icon {
   display: flex;
   align-items: center;
@@ -1464,8 +1475,9 @@ select, .checkbox-row {
 @media (max-width: 640px) {
   .tools-hub { padding: 40px 0 70px; }
   .tools-hub-header { margin-bottom: 36px; }
-  .hub-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .hub-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 24px 10px; }
   .hub-card { padding: 16px; }
+  .hub-card::before { left: 12px; min-width: 40px; }
 }
 
 /* ---------------- Individual tool page (redesign: one module, one full page) ---------------- */
