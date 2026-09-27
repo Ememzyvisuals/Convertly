@@ -8,13 +8,6 @@ import "@fontsource/fredoka/600.css";
 import "@fontsource/fredoka/700.css";
 import "./style.css";
 import { el, clear } from "./ui/dom";
-import { buildConvertFormatTool, buildRemoveBgTool } from "./tools/convertTool";
-import { buildVectorizeTool } from "./tools/vectorizeTool";
-import { buildCompressImageTool, buildCompressVideoTool } from "./tools/compressTool";
-import { buildImagesToPdf, buildPdfToImages, buildMergePdfs, buildSplitPdf } from "./tools/pdfTool";
-import { buildCreateZip, buildExtractZip } from "./tools/archiveTool";
-import { buildAudioTool } from "./tools/audioTool";
-import { buildTrimVideoTool, buildVideoToGifTool, buildExtractAudioTool, buildReplaceAudioTool } from "./tools/videoExtraTool";
 import { xLogoSVG, tiktokLogoSVG, githubLogoSVG, portfolioGlyphSVG } from "./ui/socialIcons";
 import { createThemeToggle } from "./ui/themeToggle";
 import { createLangToggle } from "./ui/langToggle";
@@ -376,7 +369,11 @@ interface ToolPageDef {
   title: string;
   description: string;
   icon: ToolIconName;
-  build: () => HTMLElement;
+  // A dynamic import, not a direct function reference: each tool's code (and its heavy
+  // transitive deps, like pdf-lib, JSZip, the FFmpeg wrapper, or the vectorizer/background
+  // removal libs) is only fetched and parsed once that tool's page is actually opened, instead
+  // of every tool being bundled into the one script the landing page has to load first.
+  build: () => Promise<HTMLElement>;
 }
 
 const TOOL_PAGES: Record<string, ToolPageDef> = {
@@ -384,97 +381,97 @@ const TOOL_PAGES: Record<string, ToolPageDef> = {
     title: t("page.convert.title"),
     description: t("page.convert.desc"),
     icon: "convert",
-    build: buildConvertFormatTool,
+    build: () => import("./tools/convertTool").then((m) => m.buildConvertFormatTool()),
   },
   "remove-bg": {
     title: t("page.remove-bg.title"),
     description: t("page.remove-bg.desc"),
     icon: "remove-bg",
-    build: buildRemoveBgTool,
+    build: () => import("./tools/convertTool").then((m) => m.buildRemoveBgTool()),
   },
   vectorize: {
     title: t("page.vectorize.title"),
     description: t("page.vectorize.desc"),
     icon: "vectorize",
-    build: buildVectorizeTool,
+    build: () => import("./tools/vectorizeTool").then((m) => m.buildVectorizeTool()),
   },
   "compress-image": {
     title: t("page.compress-image.title"),
     description: t("page.compress-image.desc"),
     icon: "compress-image",
-    build: buildCompressImageTool,
+    build: () => import("./tools/compressTool").then((m) => m.buildCompressImageTool()),
   },
   "compress-video": {
     title: t("page.compress-video.title"),
     description: t("page.compress-video.desc"),
     icon: "compress-video",
-    build: buildCompressVideoTool,
+    build: () => import("./tools/compressTool").then((m) => m.buildCompressVideoTool()),
   },
   trim: {
     title: t("page.trim.title"),
     description: t("page.trim.desc"),
     icon: "trim",
-    build: buildTrimVideoTool,
+    build: () => import("./tools/videoExtraTool").then((m) => m.buildTrimVideoTool()),
   },
   gif: {
     title: t("page.gif.title"),
     description: t("page.gif.desc"),
     icon: "gif",
-    build: buildVideoToGifTool,
+    build: () => import("./tools/videoExtraTool").then((m) => m.buildVideoToGifTool()),
   },
   "extract-audio": {
     title: t("page.extract-audio.title"),
     description: t("page.extract-audio.desc"),
     icon: "extract-audio",
-    build: buildExtractAudioTool,
+    build: () => import("./tools/videoExtraTool").then((m) => m.buildExtractAudioTool()),
   },
   "replace-audio": {
     title: t("page.replace-audio.title"),
     description: t("page.replace-audio.desc"),
     icon: "replace-audio",
-    build: buildReplaceAudioTool,
+    build: () => import("./tools/videoExtraTool").then((m) => m.buildReplaceAudioTool()),
   },
   "images-to-pdf": {
     title: t("page.images-to-pdf.title"),
     description: t("page.images-to-pdf.desc"),
     icon: "images-to-pdf",
-    build: buildImagesToPdf,
+    build: () => import("./tools/pdfTool").then((m) => m.buildImagesToPdf()),
   },
   "pdf-to-images": {
     title: t("page.pdf-to-images.title"),
     description: t("page.pdf-to-images.desc"),
     icon: "pdf-to-images",
-    build: buildPdfToImages,
+    build: () => import("./tools/pdfTool").then((m) => m.buildPdfToImages()),
   },
   "merge-pdf": {
     title: t("page.merge-pdf.title"),
     description: t("page.merge-pdf.desc"),
     icon: "merge-pdf",
-    build: buildMergePdfs,
+    build: () => import("./tools/pdfTool").then((m) => m.buildMergePdfs()),
   },
   "split-pdf": {
     title: t("page.split-pdf.title"),
     description: t("page.split-pdf.desc"),
     icon: "split-pdf",
-    build: buildSplitPdf,
+    build: () => import("./tools/pdfTool").then((m) => m.buildSplitPdf()),
   },
   audio: {
     title: t("page.audio.title"),
     description: t("page.audio.desc"),
     icon: "audio",
-    build: buildAudioTool,
+    build: () => import("./tools/audioTool").then((m) => m.buildAudioTool()),
   },
   "zip-create": {
     title: t("page.zip-create.title"),
     description: t("page.zip-create.desc"),
     icon: "zip-create",
-    build: buildCreateZip,
+    build: () => import("./tools/archiveTool").then((m) => m.buildCreateZip()),
   },
   "zip-extract": {
     title: t("page.zip-extract.title"),
     description: t("page.zip-extract.desc"),
     icon: "zip-extract",
-    build: buildExtractZip,
+    build: () => import("./tools/archiveTool").then((m) => m.buildExtractZip()),
   },
 };
 
@@ -497,21 +494,39 @@ function goTo(view: "landing" | "tools-hub") {
   window.location.hash = view === "landing" ? "" : "#/tools";
 }
 
-const toolPageCache: Partial<Record<string, HTMLElement>> = {};
+// A small spinner shown in the tool-page body the instant its page opens, while its dynamic
+// import (and any heavy library it pulls in, such as pdf-lib or the FFmpeg wrapper) downloads
+// and parses. Same idea as upload.ts's renderReading: a visible response beats a blank card.
+function buildToolLoadingBody(): HTMLElement {
+  return el("div", { class: "tool-loading" }, [
+    el("span", { class: "tool-loading-spinner", "aria-hidden": "true" }),
+    el("span", {}, [t("toolPage.loading")]),
+  ]);
+}
+
+type ToolPageEntry = { handle: ReturnType<typeof buildToolPage>; loaded: boolean };
+const toolPageCache: Partial<Record<string, ToolPageEntry>> = {};
 
 function renderToolPage(id: string): boolean {
   const def = TOOL_PAGES[id];
   if (!def) return false;
   clear(toolPageHost);
-  if (!toolPageCache[id]) {
-    toolPageCache[id] = buildToolPage({
+  let entry = toolPageCache[id];
+  if (!entry) {
+    const handle = buildToolPage({
       title: def.title,
       description: def.description,
       onBack: () => goTo("tools-hub"),
-      body: def.build(),
+      body: buildToolLoadingBody(),
+    });
+    entry = { handle, loaded: false };
+    toolPageCache[id] = entry;
+    def.build().then((body) => {
+      entry!.loaded = true;
+      entry!.handle.setBody(body);
     });
   }
-  toolPageHost.appendChild(toolPageCache[id]!);
+  toolPageHost.appendChild(entry.handle.root);
   return true;
 }
 

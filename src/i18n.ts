@@ -136,6 +136,7 @@ const en: Dict = {
   "page.zip-extract.desc": "Pull the files back out of a zip archive.",
 
   "toolPage.allTools": "All tools",
+  "toolPage.loading": "Loading tool...",
 
   "footer.builtBy": ", built by Ememzyvisuals",
   "footer.about":
@@ -268,6 +269,7 @@ const zh: Dict = {
   "page.zip-extract.desc": "从 zip 压缩包中提取文件。",
 
   "toolPage.allTools": "全部工具",
+  "toolPage.loading": "正在加载工具...",
 
   "footer.builtBy": "，由 Ememzyvisuals 开发",
   "footer.about": "一款基于浏览器的文件工具箱。你处理的内容不会上传到任何服务器，所有转换、描摹和压缩都在你自己的设备上完成。",

@@ -99,6 +99,20 @@ export function createUploader(opts: UploaderOptions): Uploader {
     root.appendChild(retry);
   }
 
+  // Shown the instant a file is dropped or picked, before validation finishes, so there is
+  // always a visible response to the drop rather than a gap where nothing on screen changes
+  // (validateFile reads the file's header bytes, which is fast but not instant on a large
+  // file on a slow phone, and with no interim state that delay reads as "did that work?").
+  function renderReading(file: File) {
+    clear(root);
+    root.appendChild(
+      el("div", { class: "file-reading" }, [
+        el("span", { class: "file-reading-spinner", "aria-hidden": "true" }),
+        el("span", {}, [`Reading ${file.name}...`]),
+      ])
+    );
+  }
+
   async function renderFileCard(file: File) {
     clear(root);
     const card = el("div", { class: "file-card" });
@@ -132,6 +146,7 @@ export function createUploader(opts: UploaderOptions): Uploader {
   }
 
   async function handleFile(file: File) {
+    renderReading(file);
     const result = await validateFile(file, { accept: opts.accept, maxBytes: opts.maxBytes });
     if (!result.ok) {
       renderError(result.reason ?? "This file can't be used here.", result.detected);
@@ -173,6 +188,13 @@ export interface MultiUploader {
 export function createMultiUploader(opts: MultiUploaderOptions): MultiUploader {
   const root = el("div", { class: "uploader multi-uploader" });
   const listHost = el("div", { class: "multi-file-list" });
+  // A transient row shown only while a just-dropped/picked batch is being read and
+  // validated, same reasoning as the single-file uploader's renderReading(): without it,
+  // dropping files gives no visible response until the whole batch finishes validating.
+  const addingRow = el("div", { class: "file-reading", style: "display:none" }, [
+    el("span", { class: "file-reading-spinner", "aria-hidden": "true" }),
+    el("span", { class: "file-reading-label" }, ["Adding files..."]),
+  ]);
   let files: File[] = [];
   let dragCounter = 0;
 
@@ -220,12 +242,14 @@ export function createMultiUploader(opts: MultiUploaderOptions): MultiUploader {
   });
 
   async function addFiles(candidates: File[]) {
+    addingRow.style.display = "flex";
     for (const file of candidates) {
       if (opts.maxFiles && files.length >= opts.maxFiles) break;
       const result = await validateFile(file, { accept: opts.accept, maxBytes: opts.maxBytes });
       if (!result.ok) continue; // multi-uploader skips invalid files quietly rather than blocking the whole batch
       files.push(file);
     }
+    addingRow.style.display = "none";
     renderList();
   }
 
@@ -279,7 +303,7 @@ export function createMultiUploader(opts: MultiUploaderOptions): MultiUploader {
     opts.onChange(files);
   }
 
-  root.append(zone, listHost);
+  root.append(zone, addingRow, listHost);
 
   return {
     root,

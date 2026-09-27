@@ -690,6 +690,64 @@ button {
   .dropzone.drag-over .dropzone-icon { animation: none; }
 }
 
+/* A brief transient state between "file dropped" and "file card shown", so the drop always
+ * gets an immediate visible response instead of a silent gap while it's being read and
+ * validated (see upload.ts's renderReading / addingRow). Same footprint as .file-card so the
+ * layout doesn't jump when it's replaced. */
+.file-reading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  background: var(--bg-raised);
+  margin-bottom: 22px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.file-reading-spinner {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  border: 2.5px solid var(--bg-inset);
+  border-top-color: var(--accent);
+  animation: file-reading-spin 0.7s linear infinite;
+}
+@keyframes file-reading-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .file-reading-spinner { animation: none; border-top-color: var(--bg-inset); }
+}
+
+/* Shown inside a tool page's body card while that tool's own code (a dynamic import, split out
+ * of the main bundle so the landing page doesn't have to load all 16 tools up front) is still
+ * downloading and parsing. Same spinner as .file-reading, just centered in a taller box since
+ * there is no file card layout to match yet. */
+.tool-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 18px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.tool-loading-spinner {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  border: 2.5px solid var(--bg-inset);
+  border-top-color: var(--accent);
+  animation: file-reading-spin 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-loading-spinner { animation: none; border-top-color: var(--bg-inset); }
+}
+
 /* ---------- File card ---------- */
 
 .file-card {

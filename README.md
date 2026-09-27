@@ -4,6 +4,8 @@
 
 # Convertly
 
+English | **[简体中文](README.zh-CN.md)**
+
 A file conversion, vectorization, and compression tool that runs entirely inside your
 browser tab. No file you process is ever uploaded to a server, no account is required,
 and nothing about that is a marketing claim, you can open your browser's network tab
@@ -181,9 +183,10 @@ this to decide whether to fork, deploy, or contribute:
 
 - The canonical hosted copy is on Vercel at `convertly0.vercel.app` (the project name
   `convertly` was already taken, hence the `0`).
-- A pull request is open against [js-org/js.org](https://github.com/js-org/js.org) to
-  register `convertly.js.org` as a friendlier custom domain, pointing at the Vercel
-  deployment. Once merged, that becomes the primary link.
+- A pull request was opened against [js-org/js.org](https://github.com/js-org/js.org)
+  to register `convertly.js.org` as a friendlier custom domain, but it was turned down.
+  A new application is in progress with a different free subdomain provider (js.cool)
+  instead. Once one goes through, that becomes the primary link.
 - All tools listed under
   [What's actually built right now](#whats-actually-built-right-now) are implemented
   and live. Only the Universal Converter/Compress front door and document conversion,
@@ -296,6 +299,9 @@ convertly/
 │   │   ├── toolIcons.ts     one hand-drawn stroke icon per tool, used on the hub cards
 │   │   └── dom.ts           tiny `el(...)` helper for building DOM nodes without a
 │   │                         framework
+│   ├── i18n.ts             a minimal i18n layer: English/Chinese dictionaries and a
+│   │                        `t(key)` lookup, covering the header, landing page, tools
+│   │                        hub, footer, and every tool page's title/description
 │   ├── pages/              page-level shells, not tied to any one tool
 │   │   ├── toolsHub.ts       the "Open tools" index: one folder-shaped card per module,
 │   │   │                      grouped into categories
