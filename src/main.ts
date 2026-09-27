@@ -17,10 +17,12 @@ import { buildVideoExtraTool } from "./tools/videoExtraTool";
 import { xLogoSVG, tiktokLogoSVG, githubLogoSVG, portfolioGlyphSVG } from "./ui/socialIcons";
 import { createThemeToggle } from "./ui/themeToggle";
 import { workspaceAvatarSVG } from "./ui/illustrations";
+import { buildToolsHub, type HubCategory } from "./pages/toolsHub";
+import { buildToolPage } from "./pages/toolPage";
 
 const YEAR = new Date().getFullYear();
 
-type View = "landing" | "workspace";
+type View = "landing" | "workspace" | "tools-hub" | "tool-convert";
 
 function brandMarkSVG(): string {
   return `<svg viewBox="0 0 20 20" width="20" height="20"><path d="M4 15 4 6 11 6 15 10 15 15 Z" fill="none" stroke="#e86f00" stroke-width="1.4"/><path d="M4 15 10 15 15 8" fill="none" stroke="#ffb066" stroke-width="1.4"/></svg>`;
@@ -41,7 +43,7 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
   homeLink.addEventListener("click", () => onNavigate("landing"));
 
   const toolsLink = el("button", { type: "button", class: "header-nav-btn" }, ["Open tools"]);
-  toolsLink.addEventListener("click", () => onNavigate("workspace"));
+  toolsLink.addEventListener("click", () => onNavigate("tools-hub"));
 
   const root = el("header", { class: "site-header" }, [
     el("div", { class: "shell" }, [
@@ -55,7 +57,10 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
 
   function setView(view: View) {
     homeLink.setAttribute("aria-current", view === "landing" ? "page" : "false");
-    toolsLink.setAttribute("aria-current", view === "workspace" ? "page" : "false");
+    toolsLink.setAttribute(
+      "aria-current",
+      view === "workspace" || view === "tools-hub" || view === "tool-convert" ? "page" : "false"
+    );
   }
 
   return { root, setView };
@@ -444,15 +449,21 @@ const app = document.getElementById("app")!;
 
 const landingHost = el("div", { class: "view view-landing" });
 const workspaceHost = el("div", { class: "view view-workspace" });
+const toolsHubHost = el("div", { class: "view view-tools-hub" });
+const toolConvertHost = el("div", { class: "view view-tool-convert" });
 
 const HASH_BY_VIEW: Record<View, string> = {
   landing: "",
   workspace: "#/app",
+  "tools-hub": "#/tools",
+  "tool-convert": "#/tools/convert",
 };
 
 function showOnly(view: View) {
   landingHost.style.display = view === "landing" ? "" : "none";
   workspaceHost.style.display = view === "workspace" ? "block" : "none";
+  toolsHubHost.style.display = view === "tools-hub" ? "block" : "none";
+  toolConvertHost.style.display = view === "tool-convert" ? "block" : "none";
   header.setView(view);
   window.scrollTo(0, 0);
 }
@@ -463,18 +474,76 @@ function goTo(view: View) {
 }
 
 const header = buildHeader(goTo);
-const hero = buildHero(() => goTo("workspace"));
+const hero = buildHero(() => goTo("tools-hub"));
 const trust = buildTrustSection();
 const workspace = buildWorkspace();
 const footer = buildFooter(goTo);
 
+// ---------------- Redesign in progress: the Tools hub replaces the old tabbed workspace as
+// the front door, one card per module. Only "Convert" is wired to a real, fully redesigned
+// dedicated page so far (this is a direction checkpoint, not the full rollout); every other
+// card still falls back to the legacy tabbed workspace until it gets its own page too. ----
+
+const hubCategories: HubCategory[] = [
+  {
+    title: "Images & video",
+    tools: [
+      { id: "convert", label: "Convert", desc: "Change image format: PNG, JPEG, WebP, AVIF.", icon: "convert", onClick: () => goTo("tool-convert") },
+      { id: "remove-bg", label: "Remove background", desc: "Cut out the background of any image.", icon: "remove-bg", onClick: () => goTo("workspace"), legacy: true },
+      { id: "vectorize", label: "Vectorize", desc: "Turn a raster image into a clean SVG.", icon: "vectorize", onClick: () => goTo("workspace"), legacy: true },
+      { id: "compress-image", label: "Compress image", desc: "Shrink a PNG or JPEG's file size.", icon: "compress-image", onClick: () => goTo("workspace"), legacy: true },
+      { id: "compress-video", label: "Compress video", desc: "Real FFmpeg re-encode, smaller file.", icon: "compress-video", onClick: () => goTo("workspace"), legacy: true },
+      { id: "trim", label: "Trim video", desc: "Cut a clip to an exact start and end.", icon: "trim", onClick: () => goTo("workspace"), legacy: true },
+      { id: "gif", label: "Video to GIF", desc: "Palette-optimized, not the muddy default.", icon: "gif", onClick: () => goTo("workspace"), legacy: true },
+      { id: "extract-audio", label: "Extract audio", desc: "Pull a video's audio track out as MP3.", icon: "extract-audio", onClick: () => goTo("workspace"), legacy: true },
+      { id: "replace-audio", label: "Replace audio", desc: "Swap a video's sound for another track.", icon: "replace-audio", onClick: () => goTo("workspace"), legacy: true },
+    ],
+  },
+  {
+    title: "PDF",
+    tools: [
+      { id: "images-to-pdf", label: "Images to PDF", desc: "Combine images into one PDF.", icon: "images-to-pdf", onClick: () => goTo("workspace"), legacy: true },
+      { id: "pdf-to-images", label: "PDF to images", desc: "Render every page as a real PNG.", icon: "pdf-to-images", onClick: () => goTo("workspace"), legacy: true },
+      { id: "merge-pdf", label: "Merge PDFs", desc: "Combine two or more PDFs into one.", icon: "merge-pdf", onClick: () => goTo("workspace"), legacy: true },
+      { id: "split-pdf", label: "Split PDF", desc: "Break a PDF into one file per page.", icon: "split-pdf", onClick: () => goTo("workspace"), legacy: true },
+    ],
+  },
+  {
+    title: "Audio",
+    tools: [
+      { id: "audio", label: "Audio tools", desc: "Convert, trim, and normalize loudness.", icon: "audio", onClick: () => goTo("workspace"), legacy: true },
+    ],
+  },
+  {
+    title: "Archives",
+    tools: [
+      { id: "zip-create", label: "Create a zip", desc: "Bundle any files into one archive.", icon: "zip-create", onClick: () => goTo("workspace"), legacy: true },
+      { id: "zip-extract", label: "Extract a zip", desc: "Pull files back out of an archive.", icon: "zip-extract", onClick: () => goTo("workspace"), legacy: true },
+    ],
+  },
+];
+
+const toolsHub = buildToolsHub(hubCategories);
+const toolConvertPage = buildToolPage({
+  title: "Convert",
+  description: "Change an image's format: PNG, JPEG, WebP, or AVIF. Runs entirely in this tab.",
+  onBack: () => goTo("tools-hub"),
+  body: buildConvertTool(),
+});
+
 landingHost.append(hero, trust);
 workspaceHost.append(workspace);
+toolsHubHost.append(toolsHub);
+toolConvertHost.append(toolConvertPage);
 
-app.append(header.root, landingHost, workspaceHost, footer);
+app.append(header.root, landingHost, workspaceHost, toolsHubHost, toolConvertHost, footer);
 
 const hash = window.location.hash;
-if (hash.startsWith("#/app")) {
+if (hash.startsWith("#/tools/convert")) {
+  goTo("tool-convert");
+} else if (hash.startsWith("#/tools")) {
+  goTo("tools-hub");
+} else if (hash.startsWith("#/app")) {
   goTo("workspace");
 } else {
   goTo("landing");

@@ -1276,6 +1276,153 @@ select, .checkbox-row {
   box-shadow: 0 8px 24px rgba(0,0,0,var(--shadow-strength));
 }
 
+/* ---------------- Tools hub (redesign: index of tool cards, one per module) ---------------- */
+
+.tools-hub { padding: 64px 0 100px; }
+
+.tools-hub-header {
+  max-width: var(--content-width);
+  margin: 0 auto 56px;
+  padding: 0 28px;
+}
+.tools-hub-header h1 {
+  font-size: clamp(36px, 5vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.tools-hub-header p {
+  font-size: 17px;
+  color: var(--text-faint);
+  margin: 0;
+}
+
+.hub-category {
+  max-width: var(--content-width);
+  margin: 0 auto 48px;
+  padding: 0 28px;
+}
+.hub-category-title {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.hub-card {
+  appearance: none;
+  text-align: left;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, transform 0.16s ease, background 0.16s ease;
+}
+.hub-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  background: var(--bg-hover);
+}
+.hub-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  color: var(--accent);
+  flex: none;
+}
+.hub-card-label {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.hub-card-desc {
+  font-size: 13px;
+  color: var(--text-faint);
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .tools-hub { padding: 40px 0 70px; }
+  .tools-hub-header { margin-bottom: 36px; }
+  .hub-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .hub-card { padding: 16px; }
+}
+
+/* ---------------- Individual tool page (redesign: one module, one full page) ---------------- */
+
+.tool-page { padding: 44px 0 100px; }
+
+.tool-page-inner {
+  max-width: 760px;
+}
+
+.tool-page-card {
+  padding: 28px 28px 32px;
+}
+@media (max-width: 480px) {
+  .tool-page-card { padding: 20px 16px 24px; }
+}
+
+.tool-page-back {
+  appearance: none;
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-faint);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 28px;
+  transition: color 0.15s ease;
+}
+.tool-page-back:hover { color: var(--accent); }
+.tool-page-back-icon { display: flex; }
+
+.tool-page-header {
+  margin-bottom: 36px;
+}
+.tool-page-header h1 {
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.tool-page-header p {
+  font-size: 16px;
+  color: var(--text-faint);
+  margin: 0;
+  max-width: 56ch;
+}
+
+@media (max-width: 640px) {
+  .tool-page { padding: 28px 0 70px; }
+  .tool-page-header { margin-bottom: 26px; }
+}
+
 /* ---------------- Category navigation (workspace, top of tool-card) ---------------- */
 
 .category-row {
