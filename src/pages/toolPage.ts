@@ -2,6 +2,7 @@
 // typographic title + one-line description, then the tool's own body (upload zone, options,
 // run button, result). One tool, one page, no shared tabs.
 import { el } from "../ui/dom";
+import { t } from "../i18n";
 
 export interface ToolPageOptions {
   title: string;
@@ -17,7 +18,7 @@ export function buildToolPage(opts: ToolPageOptions): HTMLElement {
       icon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg>`;
       return icon;
     })(),
-    "All tools",
+    t("toolPage.allTools"),
   ]);
   backBtn.addEventListener("click", opts.onBack);
 

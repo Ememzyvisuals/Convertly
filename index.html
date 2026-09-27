@@ -16,6 +16,14 @@
         if (saved === "light") document.documentElement.dataset.theme = "light";
       } catch (e) {}
     })();
+    // Same idea for the language attribute: read the saved preference before paint so the
+    // page's own lang matches what main.ts is about to render, for accessibility and SEO.
+    (function () {
+      try {
+        var lang = localStorage.getItem("convertly:lang");
+        document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+      } catch (e) {}
+    })();
   </script>
 </head>
 <body>

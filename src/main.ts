@@ -17,9 +17,11 @@ import { buildAudioTool } from "./tools/audioTool";
 import { buildTrimVideoTool, buildVideoToGifTool, buildExtractAudioTool, buildReplaceAudioTool } from "./tools/videoExtraTool";
 import { xLogoSVG, tiktokLogoSVG, githubLogoSVG, portfolioGlyphSVG } from "./ui/socialIcons";
 import { createThemeToggle } from "./ui/themeToggle";
+import { createLangToggle } from "./ui/langToggle";
 import { buildToolsHub, type HubCategory } from "./pages/toolsHub";
 import { buildToolPage } from "./pages/toolPage";
 import type { ToolIconName } from "./ui/toolIcons";
+import { t } from "./i18n";
 
 const YEAR = new Date().getFullYear();
 
@@ -44,37 +46,37 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
   const mark = el("span", { class: "brand-mark brand-badge" });
   mark.innerHTML = brandMarkSVG();
 
-  const brand = el("button", { type: "button", class: "brand", "aria-label": "Convertly, go to home" }, [
+  const brand = el("button", { type: "button", class: "brand", "aria-label": t("brand.ariaLabel") }, [
     mark,
     el("span", { class: "brand-word" }, ["Convertly"]),
   ]);
   brand.addEventListener("click", () => onNavigate("landing"));
 
   // Desktop: a pill track with a sliding highlight.
-  const homeLink = el("button", { type: "button", class: "header-nav-btn" }, ["Home"]);
-  const toolsLink = el("button", { type: "button", class: "header-nav-btn" }, ["Open tools"]);
+  const homeLink = el("button", { type: "button", class: "header-nav-btn" }, [t("nav.home")]);
+  const toolsLink = el("button", { type: "button", class: "header-nav-btn" }, [t("nav.tools")]);
   const navIndicator = el("div", { class: "header-nav-indicator", "aria-hidden": "true" });
-  const navTrack = el("nav", { class: "header-links", "aria-label": "Main" }, [homeLink, toolsLink, navIndicator]);
+  const navTrack = el("nav", { class: "header-links", "aria-label": t("nav.mainLabel") }, [homeLink, toolsLink, navIndicator]);
 
   // Mobile: a hamburger button that opens a slide-in drawer, the standard mobile pattern,
   // rather than squeezing the desktop pill nav into a second wrapped row.
   const hamburgerBtn = el("button", {
     type: "button",
     class: "mobile-nav-toggle",
-    "aria-label": "Open menu",
+    "aria-label": t("nav.openMenu"),
     "aria-expanded": "false",
   });
   hamburgerBtn.innerHTML = hamburgerIconSVG();
 
   const drawerMark = el("span", { class: "brand-mark brand-badge" });
   drawerMark.innerHTML = brandMarkSVG();
-  const closeBtn = el("button", { type: "button", class: "mobile-nav-close", "aria-label": "Close menu" });
+  const closeBtn = el("button", { type: "button", class: "mobile-nav-close", "aria-label": t("nav.closeMenu") });
   closeBtn.innerHTML = closeIconSVG();
 
-  const mobileHomeLink = el("button", { type: "button", class: "mobile-nav-link" }, ["Home"]);
-  const mobileToolsLink = el("button", { type: "button", class: "mobile-nav-link" }, ["Open tools"]);
+  const mobileHomeLink = el("button", { type: "button", class: "mobile-nav-link" }, [t("nav.home")]);
+  const mobileToolsLink = el("button", { type: "button", class: "mobile-nav-link" }, [t("nav.tools")]);
 
-  const drawer = el("aside", { class: "mobile-nav-drawer", role: "dialog", "aria-label": "Menu", "aria-modal": "true" }, [
+  const drawer = el("aside", { class: "mobile-nav-drawer", role: "dialog", "aria-label": t("nav.menuLabel"), "aria-modal": "true" }, [
     el("div", { class: "mobile-nav-drawer-head" }, [
       el("div", { class: "brand", style: "cursor:default" }, [
         drawerMark,
@@ -82,10 +84,10 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
       ]),
       closeBtn,
     ]),
-    el("nav", { class: "mobile-nav-links", "aria-label": "Main" }, [mobileHomeLink, mobileToolsLink]),
+    el("nav", { class: "mobile-nav-links", "aria-label": t("nav.mainLabel") }, [mobileHomeLink, mobileToolsLink]),
     el("div", { class: "mobile-nav-drawer-foot" }, [
-      el("span", {}, ["Appearance"]),
-      createThemeToggle(),
+      el("div", { class: "mobile-nav-drawer-foot-row" }, [el("span", {}, [t("nav.appearance")]), createThemeToggle()]),
+      el("div", { class: "mobile-nav-drawer-foot-row" }, [el("span", {}, [t("nav.language")]), createLangToggle()]),
     ]),
   ]);
 
@@ -121,7 +123,7 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
   const root = el("header", { class: "site-header" }, [
     el("div", { class: "shell" }, [
       brand,
-      el("div", { class: "header-right" }, [navTrack, createThemeToggle()]),
+      el("div", { class: "header-right" }, [navTrack, createLangToggle(), createThemeToggle()]),
       hamburgerBtn,
     ]),
     overlay,
@@ -165,12 +167,12 @@ function heroFactIconSVG(name: "no-account" | "runs-locally" | "real-engines"): 
   }
 }
 
-function heroFact(icon: "no-account" | "runs-locally" | "real-engines", title: string, body: string): HTMLElement {
+function heroFact(icon: "no-account" | "runs-locally" | "real-engines", titleKey: string, bodyKey: string): HTMLElement {
   const iconBubble = el("span", { class: "hero-fact-icon" });
   iconBubble.innerHTML = heroFactIconSVG(icon);
   return el("div", { class: "hero-fact" }, [
     iconBubble,
-    el("div", {}, [el("strong", {}, [title]), el("span", {}, [body])]),
+    el("div", {}, [el("strong", {}, [t(titleKey)]), el("span", {}, [t(bodyKey)])]),
   ]);
 }
 
@@ -186,21 +188,19 @@ function buildHero(onGetStarted: () => void): HTMLElement {
 
   const visual = el("div", { class: "hero-visual-wrap" }, [bgWord, character]);
 
-  const getStartedBtn = el("button", { type: "button", class: "run-btn hero-cta" }, ["Get started"]);
+  const getStartedBtn = el("button", { type: "button", class: "run-btn hero-cta" }, [t("hero.getStarted")]);
   getStartedBtn.addEventListener("click", onGetStarted);
 
   return el("section", { class: "hero" }, [
     el("div", { class: "shell hero-inner" }, [
       el("div", { class: "hero-copy" }, [
-        el("h1", {}, ["Make your files lighter, cleaner, ready."]),
-        el("p", { class: "lede" }, [
-          "Convert image formats, turn raster art into clean SVG, compress images and video, and zip any file type down to a smaller archive. Processed on your device, not uploaded to a server.",
-        ]),
+        el("h1", {}, [t("hero.title")]),
+        el("p", { class: "lede" }, [t("hero.lede")]),
         el("div", { class: "hero-cta-row" }, [getStartedBtn]),
         el("div", { class: "hero-facts" }, [
-          heroFact("no-account", "No account", "Nothing to sign up for, nothing to pay for."),
-          heroFact("runs-locally", "Runs locally", "Files are processed in your browser and never leave your device."),
-          heroFact("real-engines", "Real engines", "FFmpeg, canvas codecs, and a real tracing engine. No faked results."),
+          heroFact("no-account", "hero.fact.noAccount.title", "hero.fact.noAccount.body"),
+          heroFact("runs-locally", "hero.fact.runsLocally.title", "hero.fact.runsLocally.body"),
+          heroFact("real-engines", "hero.fact.realEngines.title", "hero.fact.realEngines.body"),
         ]),
       ]),
       visual,
@@ -210,22 +210,13 @@ function buildHero(onGetStarted: () => void): HTMLElement {
 
 function buildTrustSection(): HTMLElement {
   const cards = [
-    {
-      title: "Nothing is uploaded",
-      body: "Convert, Vectorize and image Compress run entirely in canvas and WebAssembly, inside this tab. Video compression uses a real FFmpeg build compiled to WebAssembly, also local. Files are never sent to a server.",
-    },
-    {
-      title: "Estimates are estimates",
-      body: "Before you process a file, size predictions are labelled as estimates because real output depends on the file's content. After processing, you see the actual output size and the actual change.",
-    },
-    {
-      title: "Honest about limits",
-      body: "Large videos need real memory and time. This is engineering-limited, not a marketing promise. If your device can't handle a file, you'll get a clear error instead of a fake result.",
-    },
+    { titleKey: "trust.card1.title", bodyKey: "trust.card1.body" },
+    { titleKey: "trust.card2.title", bodyKey: "trust.card2.body" },
+    { titleKey: "trust.card3.title", bodyKey: "trust.card3.body" },
   ];
 
   const cardEls = cards.map((c) =>
-    el("div", { class: "trust-card" }, [el("h3", {}, [c.title]), el("p", {}, [c.body])])
+    el("div", { class: "trust-card" }, [el("h3", {}, [t(c.titleKey)]), el("p", {}, [t(c.bodyKey)])])
   );
 
   const grid = el("div", { class: "shell trust-grid" }, cardEls);
@@ -327,41 +318,39 @@ function buildFooter(onGoToTool: (id: string) => void): HTMLElement {
   const aboutCol = el("div", { class: "footer-col footer-col-about" }, [
     el("div", { class: "footer-credit" }, [
       brandMark,
-      el("span", {}, [el("strong", { class: "footer-brand-word" }, ["Convertly"]), ", built by Ememzyvisuals"]),
+      el("span", {}, [el("strong", { class: "footer-brand-word" }, ["Convertly"]), t("footer.builtBy")]),
     ]),
-    el("p", { class: "footer-about-text" }, [
-      "A browser-based file toolkit. Nothing you work on is uploaded to a server, every conversion, trace, and compression runs on your own device.",
-    ]),
+    el("p", { class: "footer-about-text" }, [t("footer.about")]),
     el("div", { class: "footer-badges" }, [
-      el("span", { class: "footer-badge" }, ["Open source"]),
-      el("span", { class: "footer-badge" }, ["MIT license"]),
-      el("span", { class: "footer-badge" }, ["No account needed"]),
+      el("span", { class: "footer-badge" }, [t("footer.badge.openSource")]),
+      el("span", { class: "footer-badge" }, [t("footer.badge.mit")]),
+      el("span", { class: "footer-badge" }, [t("footer.badge.noAccount")]),
     ]),
   ]);
 
-  const productCol = footerLinkList("What Convertly can do", [
-    { label: "Convert image formats", onClick: () => onGoToTool("convert") },
-    { label: "Vectorize (raster to SVG)", onClick: () => onGoToTool("vectorize") },
-    { label: "Compress images and video", onClick: () => onGoToTool("compress-image") },
-    { label: "PDF, audio and archive tools", onClick: () => onGoToTool("images-to-pdf") },
+  const productCol = footerLinkList(t("footer.product.title"), [
+    { label: t("footer.product.convert"), onClick: () => onGoToTool("convert") },
+    { label: t("footer.product.vectorize"), onClick: () => onGoToTool("vectorize") },
+    { label: t("footer.product.compress"), onClick: () => onGoToTool("compress-image") },
+    { label: t("footer.product.pdfAudioArchive"), onClick: () => onGoToTool("images-to-pdf") },
   ] as { label: string; onClick: () => void }[]);
 
   const openSourceCol = el("div", { class: "footer-col" }, [
-    el("h4", {}, ["Open source"]),
-    el("p", { class: "footer-col-desc" }, ["Convertly is free and open source. Read the code, file an issue, or send a pull request."]),
+    el("h4", {}, [t("footer.openSource.title")]),
+    el("p", { class: "footer-col-desc" }, [t("footer.openSource.desc")]),
     el("div", { class: "footer-repo-btns" }, [
-      footerRepoLink(REPO_URL, "star", "Star this repo", true),
-      footerRepoLink(REPO_URL, "fork", "Fork it"),
-      footerRepoLink(`${REPO_URL}/issues`, "issue", "Report an issue"),
+      footerRepoLink(REPO_URL, "star", t("footer.starRepo"), true),
+      footerRepoLink(REPO_URL, "fork", t("footer.forkIt")),
+      footerRepoLink(`${REPO_URL}/issues`, "issue", t("footer.reportIssue")),
     ]),
   ]);
 
   const supportCol = el("div", { class: "footer-col" }, [
-    el("h4", {}, ["Support the project"]),
-    el("p", { class: "footer-col-desc" }, ["If Convertly saves you time, reach out and say so, that's what keeps it going."]),
-    el("div", { class: "footer-repo-btns" }, [footerRepoLink(SUPPORT_URL, "heart", "Support on X", true)]),
-    el("h4", { class: "footer-col-subhead" }, ["Developer"]),
-    el("nav", { class: "footer-socials", "aria-label": "Ememzyvisuals on the web" }, [
+    el("h4", {}, [t("footer.support.title")]),
+    el("p", { class: "footer-col-desc" }, [t("footer.support.desc")]),
+    el("div", { class: "footer-repo-btns" }, [footerRepoLink(SUPPORT_URL, "heart", t("footer.supportOnX"), true)]),
+    el("h4", { class: "footer-col-subhead" }, [t("footer.developer")]),
+    el("nav", { class: "footer-socials", "aria-label": t("footer.developerSocialsLabel") }, [
       socialLink("https://ememzyvisuals.vercel.app", portfolioGlyphSVG(), "Portfolio"),
       socialLink("https://x.com/Ememzyvisuals", xLogoSVG(), "X"),
       socialLink("https://github.com/Ememzyvisuals", githubLogoSVG(), "GitHub"),
@@ -372,8 +361,8 @@ function buildFooter(onGoToTool: (id: string) => void): HTMLElement {
   return el("footer", { class: "site-footer" }, [
     el("div", { class: "shell footer-columns" }, [aboutCol, productCol, openSourceCol, supportCol]),
     el("div", { class: "shell footer-bottom-bar" }, [
-      el("span", {}, [`(c) ${YEAR} Convertly. Built by Ememzyvisuals.`]),
-      el("a", { href: `${REPO_URL}/blob/main/LICENSE`, target: "_blank", rel: "noopener noreferrer" }, ["MIT License"]),
+      el("span", {}, [t("footer.bottomBar", { year: YEAR })]),
+      el("a", { href: `${REPO_URL}/blob/main/LICENSE`, target: "_blank", rel: "noopener noreferrer" }, [t("footer.license")]),
     ]),
   ]);
 }
@@ -392,98 +381,98 @@ interface ToolPageDef {
 
 const TOOL_PAGES: Record<string, ToolPageDef> = {
   convert: {
-    title: "Convert",
-    description: "Change an image's format: PNG, JPEG, WebP, or AVIF. Runs entirely in this tab.",
+    title: t("page.convert.title"),
+    description: t("page.convert.desc"),
     icon: "convert",
     build: buildConvertFormatTool,
   },
   "remove-bg": {
-    title: "Remove background",
-    description: "Cut the background out of any image with a real segmentation model, right in this tab.",
+    title: t("page.remove-bg.title"),
+    description: t("page.remove-bg.desc"),
     icon: "remove-bg",
     build: buildRemoveBgTool,
   },
   vectorize: {
-    title: "Vectorize",
-    description: "Turn a raster image into a clean, scalable SVG using a real tracing engine.",
+    title: t("page.vectorize.title"),
+    description: t("page.vectorize.desc"),
     icon: "vectorize",
     build: buildVectorizeTool,
   },
   "compress-image": {
-    title: "Compress image",
-    description: "Shrink a PNG or JPEG's file size with a real re-encode, not a fake progress bar.",
+    title: t("page.compress-image.title"),
+    description: t("page.compress-image.desc"),
     icon: "compress-image",
     build: buildCompressImageTool,
   },
   "compress-video": {
-    title: "Compress video",
-    description: "A real FFmpeg re-encode, entirely in this tab, for a genuinely smaller file.",
+    title: t("page.compress-video.title"),
+    description: t("page.compress-video.desc"),
     icon: "compress-video",
     build: buildCompressVideoTool,
   },
   trim: {
-    title: "Trim video",
-    description: "Cut a clip down to an exact start and end time.",
+    title: t("page.trim.title"),
+    description: t("page.trim.desc"),
     icon: "trim",
     build: buildTrimVideoTool,
   },
   gif: {
-    title: "Video to GIF",
-    description: "Palette-optimized GIF conversion, not the muddy default most converters produce.",
+    title: t("page.gif.title"),
+    description: t("page.gif.desc"),
     icon: "gif",
     build: buildVideoToGifTool,
   },
   "extract-audio": {
-    title: "Extract audio",
-    description: "Pull a video's audio track out as its own MP3 file.",
+    title: t("page.extract-audio.title"),
+    description: t("page.extract-audio.desc"),
     icon: "extract-audio",
     build: buildExtractAudioTool,
   },
   "replace-audio": {
-    title: "Replace audio",
-    description: "Swap a video's sound for another audio track.",
+    title: t("page.replace-audio.title"),
+    description: t("page.replace-audio.desc"),
     icon: "replace-audio",
     build: buildReplaceAudioTool,
   },
   "images-to-pdf": {
-    title: "Images to PDF",
-    description: "Combine one or more images into a single PDF.",
+    title: t("page.images-to-pdf.title"),
+    description: t("page.images-to-pdf.desc"),
     icon: "images-to-pdf",
     build: buildImagesToPdf,
   },
   "pdf-to-images": {
-    title: "PDF to images",
-    description: "Render every page of a PDF as a real PNG.",
+    title: t("page.pdf-to-images.title"),
+    description: t("page.pdf-to-images.desc"),
     icon: "pdf-to-images",
     build: buildPdfToImages,
   },
   "merge-pdf": {
-    title: "Merge PDFs",
-    description: "Combine two or more PDFs into a single file, in the order you add them.",
+    title: t("page.merge-pdf.title"),
+    description: t("page.merge-pdf.desc"),
     icon: "merge-pdf",
     build: buildMergePdfs,
   },
   "split-pdf": {
-    title: "Split PDF",
-    description: "Break a PDF apart into one file per page.",
+    title: t("page.split-pdf.title"),
+    description: t("page.split-pdf.desc"),
     icon: "split-pdf",
     build: buildSplitPdf,
   },
   audio: {
-    title: "Audio tools",
-    description: "Convert format, adjust bitrate, trim, and normalize loudness.",
+    title: t("page.audio.title"),
+    description: t("page.audio.desc"),
     icon: "audio",
     build: buildAudioTool,
   },
   "zip-create": {
-    title: "Create a zip",
-    description: "Compress any file type by bundling it into an archive. Works on anything.",
+    title: t("page.zip-create.title"),
+    description: t("page.zip-create.desc"),
     icon: "zip-create",
     build: buildCreateZip,
   },
   "zip-extract": {
-    title: "Extract a zip",
-    description: "Pull the files back out of a zip archive.",
+    title: t("page.zip-extract.title"),
+    description: t("page.zip-extract.desc"),
     icon: "zip-extract",
     build: buildExtractZip,
   },
@@ -542,39 +531,39 @@ const footer = buildFooter(goToTool);
 
 const hubCategories: HubCategory[] = [
   {
-    title: "Images & video",
+    title: t("category.imagesVideo"),
     tools: [
-      { id: "convert", label: "Convert", desc: "Change image format: PNG, JPEG, WebP, AVIF.", icon: "convert", onClick: () => goToTool("convert") },
-      { id: "remove-bg", label: "Remove background", desc: "Cut out the background of any image.", icon: "remove-bg", onClick: () => goToTool("remove-bg") },
-      { id: "vectorize", label: "Vectorize", desc: "Turn a raster image into a clean SVG.", icon: "vectorize", onClick: () => goToTool("vectorize") },
-      { id: "compress-image", label: "Compress image", desc: "Shrink a PNG or JPEG's file size.", icon: "compress-image", onClick: () => goToTool("compress-image") },
-      { id: "compress-video", label: "Compress video", desc: "Real FFmpeg re-encode, smaller file.", icon: "compress-video", onClick: () => goToTool("compress-video") },
-      { id: "trim", label: "Trim video", desc: "Cut a clip to an exact start and end.", icon: "trim", onClick: () => goToTool("trim") },
-      { id: "gif", label: "Video to GIF", desc: "Palette-optimized, not the muddy default.", icon: "gif", onClick: () => goToTool("gif") },
-      { id: "extract-audio", label: "Extract audio", desc: "Pull a video's audio track out as MP3.", icon: "extract-audio", onClick: () => goToTool("extract-audio") },
-      { id: "replace-audio", label: "Replace audio", desc: "Swap a video's sound for another track.", icon: "replace-audio", onClick: () => goToTool("replace-audio") },
+      { id: "convert", label: t("card.convert.label"), desc: t("card.convert.desc"), icon: "convert", onClick: () => goToTool("convert") },
+      { id: "remove-bg", label: t("card.remove-bg.label"), desc: t("card.remove-bg.desc"), icon: "remove-bg", onClick: () => goToTool("remove-bg") },
+      { id: "vectorize", label: t("card.vectorize.label"), desc: t("card.vectorize.desc"), icon: "vectorize", onClick: () => goToTool("vectorize") },
+      { id: "compress-image", label: t("card.compress-image.label"), desc: t("card.compress-image.desc"), icon: "compress-image", onClick: () => goToTool("compress-image") },
+      { id: "compress-video", label: t("card.compress-video.label"), desc: t("card.compress-video.desc"), icon: "compress-video", onClick: () => goToTool("compress-video") },
+      { id: "trim", label: t("card.trim.label"), desc: t("card.trim.desc"), icon: "trim", onClick: () => goToTool("trim") },
+      { id: "gif", label: t("card.gif.label"), desc: t("card.gif.desc"), icon: "gif", onClick: () => goToTool("gif") },
+      { id: "extract-audio", label: t("card.extract-audio.label"), desc: t("card.extract-audio.desc"), icon: "extract-audio", onClick: () => goToTool("extract-audio") },
+      { id: "replace-audio", label: t("card.replace-audio.label"), desc: t("card.replace-audio.desc"), icon: "replace-audio", onClick: () => goToTool("replace-audio") },
     ],
   },
   {
-    title: "PDF",
+    title: t("category.pdf"),
     tools: [
-      { id: "images-to-pdf", label: "Images to PDF", desc: "Combine images into one PDF.", icon: "images-to-pdf", onClick: () => goToTool("images-to-pdf") },
-      { id: "pdf-to-images", label: "PDF to images", desc: "Render every page as a real PNG.", icon: "pdf-to-images", onClick: () => goToTool("pdf-to-images") },
-      { id: "merge-pdf", label: "Merge PDFs", desc: "Combine two or more PDFs into one.", icon: "merge-pdf", onClick: () => goToTool("merge-pdf") },
-      { id: "split-pdf", label: "Split PDF", desc: "Break a PDF into one file per page.", icon: "split-pdf", onClick: () => goToTool("split-pdf") },
+      { id: "images-to-pdf", label: t("card.images-to-pdf.label"), desc: t("card.images-to-pdf.desc"), icon: "images-to-pdf", onClick: () => goToTool("images-to-pdf") },
+      { id: "pdf-to-images", label: t("card.pdf-to-images.label"), desc: t("card.pdf-to-images.desc"), icon: "pdf-to-images", onClick: () => goToTool("pdf-to-images") },
+      { id: "merge-pdf", label: t("card.merge-pdf.label"), desc: t("card.merge-pdf.desc"), icon: "merge-pdf", onClick: () => goToTool("merge-pdf") },
+      { id: "split-pdf", label: t("card.split-pdf.label"), desc: t("card.split-pdf.desc"), icon: "split-pdf", onClick: () => goToTool("split-pdf") },
     ],
   },
   {
-    title: "Audio",
+    title: t("category.audio"),
     tools: [
-      { id: "audio", label: "Audio tools", desc: "Convert, trim, and normalize loudness.", icon: "audio", onClick: () => goToTool("audio") },
+      { id: "audio", label: t("card.audio.label"), desc: t("card.audio.desc"), icon: "audio", onClick: () => goToTool("audio") },
     ],
   },
   {
-    title: "Archives",
+    title: t("category.archives"),
     tools: [
-      { id: "zip-create", label: "Create a zip", desc: "Compress any file type by bundling it into an archive.", icon: "zip-create", onClick: () => goToTool("zip-create") },
-      { id: "zip-extract", label: "Extract a zip", desc: "Pull files back out of an archive.", icon: "zip-extract", onClick: () => goToTool("zip-extract") },
+      { id: "zip-create", label: t("card.zip-create.label"), desc: t("card.zip-create.desc"), icon: "zip-create", onClick: () => goToTool("zip-create") },
+      { id: "zip-extract", label: t("card.zip-extract.label"), desc: t("card.zip-extract.desc"), icon: "zip-extract", onClick: () => goToTool("zip-extract") },
     ],
   },
 ];

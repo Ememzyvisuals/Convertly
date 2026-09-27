@@ -4,6 +4,7 @@
 // a dedicated page" pattern the rest of the redesign follows.
 import { el } from "../ui/dom";
 import { toolIconSVG, type ToolIconName } from "../ui/toolIcons";
+import { t } from "../i18n";
 
 export interface HubTool {
   id: string;
@@ -37,8 +38,8 @@ export function buildToolsHub(categories: HubCategory[]): HTMLElement {
   const root = el("div", { class: "tools-hub" });
 
   const header = el("div", { class: "tools-hub-header" }, [
-    el("h1", {}, ["Open tools"]),
-    el("p", {}, ["Every module lives on its own page. Pick one below."]),
+    el("h1", {}, [t("hub.title")]),
+    el("p", {}, [t("hub.subtitle")]),
   ]);
   root.appendChild(header);
 
