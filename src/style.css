@@ -1038,6 +1038,7 @@ select option {
   font-size: 15px;
 }
 .estimate-strip .stat-value.muted { color: var(--text-muted); }
+.estimate-strip .stat-value.warn { color: var(--warning-ink); }
 .estimate-note {
   width: 100%;
   color: var(--text-faint);
@@ -1779,4 +1780,74 @@ select option {
   opacity: 0.35;
   cursor: not-allowed;
 }
+
+/* ---------- Shared free-text input (QR text, secret message, revealed message) ---------- */
+
+.tool-textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.tool-textarea::placeholder { color: var(--text-faint); }
+.tool-textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.tool-textarea[readonly] { color: var(--text-muted); }
+
+/* ---------- QR code / hidden-image preview ---------- */
+
+.qr-preview {
+  display: flex;
+  justify-content: center;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  margin-bottom: 18px;
+}
+.qr-preview img {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+/* ---------- Metadata viewer ---------- */
+
+.metadata-block { margin-bottom: 22px; }
+.metadata-block-title {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 10px;
+}
+.metadata-table {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-inset);
+}
+.metadata-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line);
+}
+.metadata-row:last-child { border-bottom: none; }
+.metadata-key { color: var(--text-muted); }
+.metadata-value { color: var(--text); text-align: right; word-break: break-word; }
 

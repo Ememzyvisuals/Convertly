@@ -494,6 +494,24 @@ const TOOL_PAGES: Record<string, ToolPageDef> = {
     icon: "zip-extract",
     build: () => import("./tools/archiveTool").then((m) => m.buildExtractZip()),
   },
+  "qr-code": {
+    title: t("page.qr-code.title"),
+    description: t("page.qr-code.desc"),
+    icon: "qr-code",
+    build: () => import("./tools/qrTool").then((m) => m.buildQrCodeTool()),
+  },
+  steganography: {
+    title: t("page.steganography.title"),
+    description: t("page.steganography.desc"),
+    icon: "steganography",
+    build: () => import("./tools/steganographyTool").then((m) => m.buildSteganographyTool()),
+  },
+  metadata: {
+    title: t("page.metadata.title"),
+    description: t("page.metadata.desc"),
+    icon: "metadata",
+    build: () => import("./tools/metadataTool").then((m) => m.buildMetadataTool()),
+  },
 };
 
 const app = document.getElementById("app")!;
@@ -620,6 +638,14 @@ const hubCategories: HubCategory[] = [
     tools: [
       { id: "zip-create", label: t("card.zip-create.label"), desc: t("card.zip-create.desc"), icon: "zip-create", onClick: () => goToTool("zip-create") },
       { id: "zip-extract", label: t("card.zip-extract.label"), desc: t("card.zip-extract.desc"), icon: "zip-extract", onClick: () => goToTool("zip-extract") },
+    ],
+  },
+  {
+    title: t("category.utilities"),
+    tools: [
+      { id: "qr-code", label: t("card.qr-code.label"), desc: t("card.qr-code.desc"), icon: "qr-code", onClick: () => goToTool("qr-code") },
+      { id: "steganography", label: t("card.steganography.label"), desc: t("card.steganography.desc"), icon: "steganography", onClick: () => goToTool("steganography") },
+      { id: "metadata", label: t("card.metadata.label"), desc: t("card.metadata.desc"), icon: "metadata", onClick: () => goToTool("metadata") },
     ],
   },
 ];

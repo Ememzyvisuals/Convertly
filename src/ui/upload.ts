@@ -19,7 +19,7 @@ export interface Uploader {
 // The dropzone's centerpiece is a small crop of Convertly's own mascot (the same character
 // from the landing page hero, not a generic upload glyph), so the upload step still feels
 // like part of the same product rather than a borrowed form control.
-function dropzoneMascot(): HTMLElement {
+export function dropzoneMascot(): HTMLElement {
   const wrap = el("div", { class: "dropzone-icon" });
   wrap.innerHTML = `
     <picture>

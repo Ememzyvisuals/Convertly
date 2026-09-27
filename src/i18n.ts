@@ -68,6 +68,7 @@ const en: Dict = {
   "category.pdf": "PDF",
   "category.audio": "Audio",
   "category.archives": "Archives",
+  "category.utilities": "Utilities",
 
   "card.convert.label": "Convert",
   "card.convert.desc": "Change image format: PNG, JPEG, WebP, AVIF.",
@@ -102,6 +103,13 @@ const en: Dict = {
   "card.zip-extract.label": "Extract a zip",
   "card.zip-extract.desc": "Pull files back out of an archive.",
 
+  "card.qr-code.label": "QR code generator",
+  "card.qr-code.desc": "Turn text, a link, an email, or a phone number into a scannable code.",
+  "card.steganography.label": "Hide data in an image",
+  "card.steganography.desc": "Hide a secret message or file inside a picture, then reveal it later.",
+  "card.metadata.label": "Metadata viewer",
+  "card.metadata.desc": "See what's really inside an image, video, or audio file.",
+
   "page.convert.title": "Convert",
   "page.convert.desc": "Change an image's format: PNG, JPEG, WebP, or AVIF. Runs entirely in this tab.",
   "page.remove-bg.title": "Remove background",
@@ -134,6 +142,13 @@ const en: Dict = {
   "page.zip-create.desc": "Compress any file type by bundling it into an archive. Works on anything.",
   "page.zip-extract.title": "Extract a zip",
   "page.zip-extract.desc": "Pull the files back out of a zip archive.",
+
+  "page.qr-code.title": "QR code generator",
+  "page.qr-code.desc": "Encode text, a link, an email address, or a phone number as a QR code. Runs entirely in this tab.",
+  "page.steganography.title": "Hide data in an image",
+  "page.steganography.desc": "Hide a secret message or an entire file inside an ordinary-looking picture, then reveal it later.",
+  "page.metadata.title": "Metadata viewer",
+  "page.metadata.desc": "Inspect an image, video, or audio file's real technical and EXIF metadata.",
 
   "toolPage.allTools": "All tools",
   "toolPage.loading": "Loading tool...",
@@ -201,6 +216,7 @@ const zh: Dict = {
   "category.pdf": "PDF",
   "category.audio": "音频",
   "category.archives": "压缩包",
+  "category.utilities": "实用工具",
 
   "card.convert.label": "格式转换",
   "card.convert.desc": "转换图片格式：PNG、JPEG、WebP、AVIF。",
@@ -235,6 +251,13 @@ const zh: Dict = {
   "card.zip-extract.label": "解压压缩包",
   "card.zip-extract.desc": "从压缩包中提取文件。",
 
+  "card.qr-code.label": "二维码生成器",
+  "card.qr-code.desc": "将文字、链接、邮箱或电话号码生成可扫描的二维码。",
+  "card.steganography.label": "图片藏密",
+  "card.steganography.desc": "把一条秘密信息或一个文件藏进图片里，之后再取出来。",
+  "card.metadata.label": "元数据查看器",
+  "card.metadata.desc": "查看图片、视频或音频文件里真实的技术信息。",
+
   "page.convert.title": "格式转换",
   "page.convert.desc": "转换图片格式：PNG、JPEG、WebP 或 AVIF，全部在本标签页内完成。",
   "page.remove-bg.title": "去除背景",
@@ -267,6 +290,13 @@ const zh: Dict = {
   "page.zip-create.desc": "将任意类型的文件打包压缩，适用于任何文件。",
   "page.zip-extract.title": "解压压缩包",
   "page.zip-extract.desc": "从 zip 压缩包中提取文件。",
+
+  "page.qr-code.title": "二维码生成器",
+  "page.qr-code.desc": "将文字、链接、邮箱地址或电话号码编码为二维码，全部在此标签页内完成。",
+  "page.steganography.title": "图片藏密",
+  "page.steganography.desc": "把一条秘密信息或一整个文件藏进一张看似普通的图片里，之后再取出来。",
+  "page.metadata.title": "元数据查看器",
+  "page.metadata.desc": "查看图片、视频或音频文件真实的技术信息和 EXIF 元数据。",
 
   "toolPage.allTools": "全部工具",
   "toolPage.loading": "正在加载工具...",

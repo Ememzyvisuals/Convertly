@@ -17,7 +17,10 @@ export type ToolIconName =
   | "split-pdf"
   | "audio"
   | "zip-create"
-  | "zip-extract";
+  | "zip-extract"
+  | "qr-code"
+  | "steganography"
+  | "metadata";
 
 export function toolIconSVG(name: ToolIconName): string {
   const common = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"';
@@ -53,7 +56,13 @@ export function toolIconSVG(name: ToolIconName): string {
     case "zip-create":
       return `<svg ${common}><rect x="3.5" y="6" width="17" height="14" rx="2"/><path d="M12 6V3.5M12 9v2M12 13v2M4 6h16"/></svg>`;
     case "zip-extract":
-    default:
       return `<svg ${common}><rect x="3.5" y="6" width="17" height="14" rx="2"/><path d="M12 6V3.5M4 6h16"/><path d="M9 13l3 3 3-3M12 10v6"/></svg>`;
+    case "qr-code":
+      return `<svg ${common}><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15.5 15.5h2M19.5 15.5h1.5M15.5 19.5h1.5M19.5 18v2.5"/></svg>`;
+    case "steganography":
+      return `<svg ${common}><rect x="2.5" y="4.5" width="19" height="14" rx="2"/><path d="M6.5 15l3.5-4.5 3 3 2-2.5 2.5 4" /><rect x="10.5" y="8.5" width="3" height="3" rx="0.6" stroke-dasharray="1.6 1.6"/></svg>`;
+    case "metadata":
+    default:
+      return `<svg ${common}><rect x="4" y="3" width="13" height="17" rx="1.6"/><path d="M7.5 8h6M7.5 11.5h6M7.5 15h3.5"/><circle cx="17.5" cy="17.5" r="3"/><path d="M19.7 19.7 21.5 21.5"/></svg>`;
   }
 }
