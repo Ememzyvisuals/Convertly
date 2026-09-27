@@ -10,10 +10,24 @@ declare module "qrcode/lib/browser.js" {
     type?: "svg";
   }
 
+  export interface QrModules {
+    size: number;
+    get(row: number, col: number): number;
+  }
+
+  export interface QrCreateResult {
+    modules: QrModules;
+    version: number;
+    errorCorrectionLevel: { bit: number };
+    maskPattern: number;
+    segments: unknown[];
+  }
+
   const QRCode: {
     toCanvas(canvas: HTMLCanvasElement, text: string, options?: QRCodeOptions): Promise<void>;
     toDataURL(text: string, options?: QRCodeOptions): Promise<string>;
     toString(text: string, options?: QRCodeOptions): Promise<string>;
+    create(text: string, options?: QRCodeOptions): QrCreateResult;
   };
 
   export default QRCode;
