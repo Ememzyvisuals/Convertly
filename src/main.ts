@@ -512,6 +512,36 @@ const TOOL_PAGES: Record<string, ToolPageDef> = {
     icon: "metadata",
     build: () => import("./tools/metadataTool").then((m) => m.buildMetadataTool()),
   },
+  "card-creator": {
+    title: t("page.card-creator.title"),
+    description: t("page.card-creator.desc"),
+    icon: "card-creator",
+    build: () => import("./tools/cardCreatorTool").then((m) => m.buildCardCreatorTool()),
+  },
+  "resize-image": {
+    title: t("page.resize-image.title"),
+    description: t("page.resize-image.desc"),
+    icon: "resize-image",
+    build: () => import("./tools/photoTools").then((m) => m.buildResizeImageTool()),
+  },
+  "watermark-image": {
+    title: t("page.watermark-image.title"),
+    description: t("page.watermark-image.desc"),
+    icon: "watermark-image",
+    build: () => import("./tools/photoTools").then((m) => m.buildWatermarkImageTool()),
+  },
+  "crop-image": {
+    title: t("page.crop-image.title"),
+    description: t("page.crop-image.desc"),
+    icon: "crop-image",
+    build: () => import("./tools/photoTools").then((m) => m.buildCropImageTool()),
+  },
+  "filter-image": {
+    title: t("page.filter-image.title"),
+    description: t("page.filter-image.desc"),
+    icon: "filter-image",
+    build: () => import("./tools/photoTools").then((m) => m.buildFilterImageTool()),
+  },
 };
 
 const app = document.getElementById("app")!;
@@ -616,6 +646,10 @@ const hubCategories: HubCategory[] = [
       { id: "gif", label: t("card.gif.label"), desc: t("card.gif.desc"), icon: "gif", onClick: () => goToTool("gif") },
       { id: "extract-audio", label: t("card.extract-audio.label"), desc: t("card.extract-audio.desc"), icon: "extract-audio", onClick: () => goToTool("extract-audio") },
       { id: "replace-audio", label: t("card.replace-audio.label"), desc: t("card.replace-audio.desc"), icon: "replace-audio", onClick: () => goToTool("replace-audio") },
+      { id: "resize-image", label: t("card.resize-image.label"), desc: t("card.resize-image.desc"), icon: "resize-image", onClick: () => goToTool("resize-image") },
+      { id: "watermark-image", label: t("card.watermark-image.label"), desc: t("card.watermark-image.desc"), icon: "watermark-image", onClick: () => goToTool("watermark-image") },
+      { id: "crop-image", label: t("card.crop-image.label"), desc: t("card.crop-image.desc"), icon: "crop-image", onClick: () => goToTool("crop-image") },
+      { id: "filter-image", label: t("card.filter-image.label"), desc: t("card.filter-image.desc"), icon: "filter-image", onClick: () => goToTool("filter-image") },
     ],
   },
   {
@@ -646,6 +680,7 @@ const hubCategories: HubCategory[] = [
       { id: "qr-code", label: t("card.qr-code.label"), desc: t("card.qr-code.desc"), icon: "qr-code", onClick: () => goToTool("qr-code") },
       { id: "steganography", label: t("card.steganography.label"), desc: t("card.steganography.desc"), icon: "steganography", onClick: () => goToTool("steganography") },
       { id: "metadata", label: t("card.metadata.label"), desc: t("card.metadata.desc"), icon: "metadata", onClick: () => goToTool("metadata") },
+      { id: "card-creator", label: t("card.card-creator.label"), desc: t("card.card-creator.desc"), icon: "card-creator", onClick: () => goToTool("card-creator") },
     ],
   },
 ];

@@ -815,6 +815,41 @@ button {
 }
 .file-remove:hover { border-color: var(--danger); color: var(--danger-ink); }
 
+/* ---------- Secret-file picker (steganography "hide a file" mode) ---------- */
+/* Its own boxed control rather than a bare inline text link, so it reads as an
+ * upload control at a glance instead of looking like an inert line of copy. */
+.secret-file-zone {
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.secret-file-zone-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-inset);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.secret-file-zone-btn:hover { border-color: var(--accent); color: var(--accent); }
+.secret-file-zone-icon { display: inline-flex; color: var(--accent); }
+.secret-file-zone-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
 .validation-error {
   border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--line));
   background: color-mix(in srgb, var(--danger) 10%, var(--bg-raised));
@@ -1850,4 +1885,62 @@ select option {
 .metadata-row:last-child { border-bottom: none; }
 .metadata-key { color: var(--text-muted); }
 .metadata-value { color: var(--text); text-align: right; word-break: break-word; }
+
+/* ---------- Crop tool ---------- */
+
+.crop-stage {
+  position: relative;
+  margin: 0 auto 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.crop-stage-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+.crop-box {
+  position: absolute;
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  cursor: move;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45);
+}
+.crop-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-raised);
+}
+.crop-handle-nw { top: -8px; left: -8px; cursor: nwse-resize; }
+.crop-handle-ne { top: -8px; right: -8px; cursor: nesw-resize; }
+.crop-handle-sw { bottom: -8px; left: -8px; cursor: nesw-resize; }
+.crop-handle-se { bottom: -8px; right: -8px; cursor: nwse-resize; }
+
+/* ---------- Card creator ---------- */
+
+.card-preview {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  margin-bottom: 18px;
+}
+.card-canvas {
+  max-width: 100%;
+  height: auto;
+  max-height: 640px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, calc(var(--shadow-strength) * 1.1));
+}
 

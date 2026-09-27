@@ -20,7 +20,12 @@ export type ToolIconName =
   | "zip-extract"
   | "qr-code"
   | "steganography"
-  | "metadata";
+  | "metadata"
+  | "resize-image"
+  | "watermark-image"
+  | "crop-image"
+  | "filter-image"
+  | "card-creator";
 
 export function toolIconSVG(name: ToolIconName): string {
   const common = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"';
@@ -62,7 +67,17 @@ export function toolIconSVG(name: ToolIconName): string {
     case "steganography":
       return `<svg ${common}><rect x="2.5" y="4.5" width="19" height="14" rx="2"/><path d="M6.5 15l3.5-4.5 3 3 2-2.5 2.5 4" /><rect x="10.5" y="8.5" width="3" height="3" rx="0.6" stroke-dasharray="1.6 1.6"/></svg>`;
     case "metadata":
-    default:
       return `<svg ${common}><rect x="4" y="3" width="13" height="17" rx="1.6"/><path d="M7.5 8h6M7.5 11.5h6M7.5 15h3.5"/><circle cx="17.5" cy="17.5" r="3"/><path d="M19.7 19.7 21.5 21.5"/></svg>`;
+    case "resize-image":
+      return `<svg ${common}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M14 10 20 4M20 4h-4M20 4v4"/><path d="M10 14 4 20M4 20h4M4 20v-4"/></svg>`;
+    case "watermark-image":
+      return `<svg ${common}><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4.5 18l5-5 3 3 3-4 4.5 4.5" stroke-dasharray="2.2 2.2"/></svg>`;
+    case "crop-image":
+      return `<svg ${common}><path d="M7 2v14a2 2 0 0 0 2 2h12"/><path d="M17 22V8a2 2 0 0 0-2-2H2"/></svg>`;
+    case "filter-image":
+      return `<svg ${common}><circle cx="9" cy="9" r="6.5"/><circle cx="15" cy="15" r="6.5"/></svg>`;
+    case "card-creator":
+    default:
+      return `<svg ${common}><rect x="3" y="4.5" width="18" height="14" rx="2"/><path d="M3 8.5h18" stroke-dasharray="1 3"/><path d="M8 13.5c1-1.4 2-1.4 3 0s2 1.4 3 0 2-1.4 3 0"/></svg>`;
   }
 }

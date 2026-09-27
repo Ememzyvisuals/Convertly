@@ -39,7 +39,7 @@ function drawToCanvas(bitmap: ImageBitmap, width: number, height: number, fillWh
   return canvas;
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
+export function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error(`This browser can't encode ${mime}.`))),

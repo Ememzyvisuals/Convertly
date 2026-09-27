@@ -97,17 +97,55 @@ function buildEncodePanel(onUsed: () => void): HTMLElement {
   messageInput.addEventListener("input", renderCapacity);
 
   const secretFileInput = el("input", { type: "file", class: "sr-only" }) as HTMLInputElement;
-  const secretFilePickBtn = el("button", { type: "button", class: "file-picker-btn" }, ["choose a file to hide"]);
-  const secretFileLabel = el("div", { class: "control-hint" }, ["No file chosen yet."]);
-  secretFilePickBtn.addEventListener("click", () => secretFileInput.click());
+  const secretFileZoneHost = el("div");
   secretFileInput.addEventListener("change", () => {
     const f = secretFileInput.files?.[0];
     if (f) {
       secretFile = f;
-      secretFileLabel.textContent = `${f.name} (${formatBytes(f.size)})`;
+      renderSecretFileZone();
       renderCapacity();
     }
+    secretFileInput.value = "";
   });
+
+  function renderSecretFileZone() {
+    clear(secretFileZoneHost);
+    if (!secretFile) {
+      const zone = el("div", { class: "secret-file-zone", role: "group", "aria-label": "Choose a file to hide" });
+      const pickBtn = el("button", { type: "button", class: "secret-file-zone-btn" }, [
+        el("span", { class: "secret-file-zone-icon", "aria-hidden": "true" }, [
+          (() => {
+            const s = el("span");
+            s.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>`;
+            return s;
+          })(),
+        ]),
+        el("span", {}, ["Choose a file to hide"]),
+      ]);
+      pickBtn.addEventListener("click", () => secretFileInput.click());
+      zone.append(pickBtn, el("div", { class: "secret-file-zone-hint" }, ["Any file type, its name is hidden along with it."]));
+      secretFileZoneHost.append(zone, secretFileInput);
+    } else {
+      const ext = secretFile.name.includes(".") ? secretFile.name.split(".").pop()!.toUpperCase() : "FILE";
+      const card = el("div", { class: "file-card" }, [
+        el("div", { class: "file-thumb-fallback" }, [ext.slice(0, 4)]),
+        el("div", { class: "file-meta" }, [
+          el("div", { class: "file-name" }, [secretFile.name]),
+          el("div", { class: "file-sub" }, [el("span", { class: "mono" }, [formatBytes(secretFile.size)]), el("span", { class: "file-status" }, ["Ready"])]),
+        ]),
+        (() => {
+          const rm = el("button", { type: "button", class: "file-remove", "aria-label": "Remove file" }, ["×"]);
+          rm.addEventListener("click", () => {
+            secretFile = null;
+            renderSecretFileZone();
+            renderCapacity();
+          });
+          return rm;
+        })(),
+      ]);
+      secretFileZoneHost.append(card, secretFileInput);
+    }
+  }
 
   function renderSecretArea() {
     clear(secretHost);
@@ -115,7 +153,8 @@ function buildEncodePanel(onUsed: () => void): HTMLElement {
     if (secretKind === "message") {
       secretHost.append(messageInput);
     } else {
-      secretHost.append(el("div", { class: "control" }, [secretFilePickBtn, secretFileInput, secretFileLabel]));
+      renderSecretFileZone();
+      secretHost.append(secretFileZoneHost);
     }
     renderCapacity();
     renderAction();

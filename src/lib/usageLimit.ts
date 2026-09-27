@@ -5,7 +5,7 @@
 // drag-and-drop-deployable app, it's a usage nudge, not real abuse prevention.
 
 const STORAGE_KEY = "convertly:usage";
-export const DAILY_LIMIT = 100;
+export const DAILY_LIMIT = 500;
 
 interface UsageRecord {
   date: string; // YYYY-MM-DD, local
