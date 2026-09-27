@@ -755,14 +755,18 @@ button {
 }
 
 /* A recessed track (inset shadow) with pill buttons that lift off it when active, so the
- * selected option reads as a raised tab rather than a flat color swap. */
+ * selected option reads as a raised tab rather than a flat color swap. The track itself uses
+ * a fixed corner radius rather than a pill: a pill radius is half the box's own height, and
+ * once long labels wrap this onto two or three rows the box gets taller and that radius balloons
+ * with it, so wrapped rows visibly poke out past the curve instead of sitting inside it. A
+ * fixed radius stays correct no matter how many rows the options wrap onto. */
 .segmented {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   border: 1px solid var(--line);
   background: var(--bg-inset);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   padding: 4px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.55));
 }
