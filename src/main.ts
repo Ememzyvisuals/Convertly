@@ -25,8 +25,11 @@ const YEAR = new Date().getFullYear();
 
 type View = "landing" | "workspace" | "tools-hub" | "tool-convert";
 
+// A single bold glyph meant to sit inside a solid-colored badge (see .brand-badge), not a
+// loose two-tone line icon floating next to the wordmark. Solid fill in currentColor so it
+// reads clearly at small sizes against the accent background.
 function brandMarkSVG(): string {
-  return `<svg viewBox="0 0 20 20" width="20" height="20"><path d="M4 15 4 6 11 6 15 10 15 15 Z" fill="none" stroke="#e86f00" stroke-width="1.4"/><path d="M4 15 10 15 15 8" fill="none" stroke="#ffb066" stroke-width="1.4"/></svg>`;
+  return `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 9h11.2l-3-3 1.4-1.4L19 10l-5.4 5.4-1.4-1.4 3-3H4Z"/><path d="M20 15H8.8l3 3-1.4 1.4L4 14l5.4-5.4L10.8 10l-3 3H20Z"/></svg>`;
 }
 
 function hamburgerIconSVG(): string {
@@ -38,13 +41,12 @@ function closeIconSVG(): string {
 }
 
 function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; setView: (view: View) => void } {
-  const mark = el("span", { class: "brand-mark" });
+  const mark = el("span", { class: "brand-mark brand-badge" });
   mark.innerHTML = brandMarkSVG();
 
   const brand = el("button", { type: "button", class: "brand", "aria-label": "Convertly, go to home" }, [
     mark,
-    "Convertly",
-    el("span", { class: "brand-tag" }, ["local, browser-based file tools"]),
+    el("span", { class: "brand-word" }, ["Convertly"]),
   ]);
   brand.addEventListener("click", () => onNavigate("landing"));
 
@@ -64,7 +66,7 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
   });
   hamburgerBtn.innerHTML = hamburgerIconSVG();
 
-  const drawerMark = el("span", { class: "brand-mark" });
+  const drawerMark = el("span", { class: "brand-mark brand-badge" });
   drawerMark.innerHTML = brandMarkSVG();
   const closeBtn = el("button", { type: "button", class: "mobile-nav-close", "aria-label": "Close menu" });
   closeBtn.innerHTML = closeIconSVG();
@@ -74,7 +76,10 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
 
   const drawer = el("aside", { class: "mobile-nav-drawer", role: "dialog", "aria-label": "Menu", "aria-modal": "true" }, [
     el("div", { class: "mobile-nav-drawer-head" }, [
-      el("div", { class: "brand", style: "cursor:default" }, [drawerMark, "Convertly"]),
+      el("div", { class: "brand", style: "cursor:default" }, [
+        drawerMark,
+        el("span", { class: "brand-word" }, ["Convertly"]),
+      ]),
       closeBtn,
     ]),
     el("nav", { class: "mobile-nav-links", "aria-label": "Main" }, [mobileHomeLink, mobileToolsLink]),
@@ -480,7 +485,7 @@ function footerLinkList(title: string, links: { label: string; onClick: () => vo
 }
 
 function buildFooter(onNavigate: (view: View) => void): HTMLElement {
-  const brandMark = el("span", { class: "footer-brand-mark" });
+  const brandMark = el("span", { class: "footer-brand-mark brand-badge" });
   brandMark.innerHTML = brandMarkSVG();
 
   const aboutCol = el("div", { class: "footer-col footer-col-about" }, [

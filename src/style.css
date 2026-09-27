@@ -148,6 +148,9 @@ button {
   gap: 16px;
 }
 
+/* Logo lockup: an icon badge plus the wordmark, nothing else riding along next to it.
+   The badge is a small solid square with the glyph inside, not a loose line-icon floating
+   next to the text. */
 .brand {
   appearance: none;
   background: none;
@@ -155,29 +158,28 @@ button {
   cursor: pointer;
   padding: 0;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  font-family: var(--font-display);
-  font-size: 21px;
-  font-weight: 600;
   color: var(--text);
 }
 
-.brand-mark {
-  width: 20px;
-  height: 20px;
+.brand-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
   flex: none;
 }
+.brand-badge svg { width: 58%; height: 58%; }
 
-.brand-tag {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-faint);
-  display: none;
-}
-
-@media (min-width: 560px) {
-  .brand-tag { display: inline; }
+.brand-word {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
 }
 
 .header-right {
@@ -260,8 +262,9 @@ button {
    Mobile keeps the compact sizing below, this only scales things up. */
 @media (min-width: 960px) {
   .site-header { padding: 26px 0; }
-  .brand-mark { width: 23px; height: 23px; }
-  .brand { font-size: 22px; gap: 11px; }
+  .brand-badge { width: 31px; height: 31px; border-radius: 10px; }
+  .brand { gap: 11px; }
+  .brand-word { font-size: 22px; }
   .header-links { padding: 4px; }
   .header-nav-btn { padding: 9px 20px; font-size: 15px; }
   .theme-toggle { width: 38px; height: 38px; }
@@ -540,7 +543,7 @@ button {
   white-space: nowrap;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(52px, 11vw, 128px);
+  font-size: clamp(52px, 13vw, 156px);
   line-height: 0.9;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -1251,7 +1254,7 @@ select, .checkbox-row {
   align-items: center;
   gap: 10px;
 }
-.footer-brand-mark { flex: none; display: flex; opacity: 0.9; }
+.footer-brand-mark { width: 24px; height: 24px; border-radius: 8px; }
 
 .footer-socials {
   display: flex;
