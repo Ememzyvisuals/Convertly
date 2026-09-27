@@ -90,6 +90,10 @@ Convertly 是一个专注、单一的工作台：快速、单一用途的转换�
   `palettegen`/`paletteuse`，而不是 FFmpeg 默认那种浑浊效果），将视频的音轨提取为
   独立的 MP3，以及用另一段音频或另一个视频的音轨完整替换视频的声音（原声会被
   丢弃，结果时长取两者中较短的一个）。使用与“压缩视频”相同的 FFmpeg 引擎。
+- **缩放、裁剪、水印、滤镜**：按精确尺寸或百分比预设缩放（可选锁定宽高比）；
+  一个可交互的裁剪框，支持拖动移动、拖动缩放，并带实时预览；文字水印支持
+  九宫格定位、颜色、不透明度和大小控制；以及基于 CSS 滤镜的照片滤镜（灰阶、
+  复古棕、反色、亮度、对比度、饱和度、模糊），带实时前后对比画布。
 
 **PDF**
 - **图片转 PDF**：将任意数量的 PNG/JPEG/WebP/BMP 图片合并为一个 PDF，可选择
@@ -115,12 +119,34 @@ Convertly 是一个专注、单一的工作台：快速、单一用途的转换�
   [`JSZip`](https://github.com/Stuk/jszip) 实现。
 - **解压压缩包**：读取真实内容，并可单独下载其中每一个文件。
 
+**实用工具**
+- **二维码生成器**：编码文字、链接、邮箱地址或电话号码，可选择纠错等级。完全
+  可定制品牌样式：方形、圆角或点状三种模块样式，配套对应风格的三个定位角，
+  二维码颜色和背景色都可用颜色选择器自定义，还可以在中央放置一个 logo（放置
+  logo 后纠错等级会自动锁定为最高级别，确保 logo 下方的图案依然可以被扫描）。
+  PNG 和 SVG 下载共用同一套样式渲染逻辑，因此两者始终一致，每一种样式与
+  logo 的组合都用真实的二维码解码器验证过，而不只是看起来对。
+- **隐写术**：把一段文字或一整个文件隐藏进一张看起来普通的 PNG 图片里，利用
+  每个像素最低位的一点微小变化，肉眼无法察觉。“提取”模式则能把它还原出来，
+  并通过一个魔数校验，确保普通照片不会被误判为藏有数据。
+- **元数据查看器**：尽可能读取每一项能找到的元数据标签，而不是一份精选
+  清单。对图片：exifr 能提取的每一个 EXIF/TIFF 子块（相机、镜头、曝光、
+  解析为可点击地图链接的 GPS 坐标、IPTC、XMP、ICC 色彩描述文件）、任何内嵌的
+  缩略图（可单独提取并下载），以及直接读取的 PNG `tEXt`/`iTXt` 文本块（
+  Stable Diffusion 等 AI 出图工具正是把完整的生成提示词藏在这里）。对视频：
+  MP4/MOV 容器标签（标题、艺术家、备注、创建时间、各轨道信息），同时支持经典
+  的 iTunes 原子标签方案和 iPhone 使用的 QuickTime keys/`ilst` 方案。对音频：
+  MP3 的完整 ID3v2/ID3v1 标签，以及 WAV 精确的 `fmt` 块数值和 RIFF INFO 标签。
+- **贺卡生成器**：情书、情人节、生日、感谢信四种场合模板，各自带有手绘的
+  画布装饰、配色方案和默认文案。填入收件人、正文和署名，即可得到一张渲染好、
+  可下载的贺卡。
+
 **贯穿每个工具的功能**
 - **处理前后对比预览**：原始文件与处理结果并排展示（音频则是一个真实可播放的
   结果），下载操作就在结果正下方。
 - **需要时支持多文件上传**（PDF 合并、图片转 PDF、创建压缩包），带一个可重新
   排序或删减的有序列表，运行前都可以调整。
-- **本地每日使用计数器**：一个软性的、按浏览器计算的限制（每天 100 次，显示在
+- **本地每日使用计数器**：一个软性的、按浏览器计算的限制（每天 500 次，显示在
   每个工具的运行按钮下方），存储在 `localStorage` 中。这相当于客户端版本的
   “网站如何知道你已登录”，而不是真正的服务端防滥用机制（清除站点数据或使用
   隐私窗口都会重置它），界面对此也很坦诚，而不是假装它是别的东西。
@@ -267,6 +293,11 @@ convertly/
 │   │   ├── pdfTools.ts      图片转 PDF、PDF 转图片、合并、拆分（pdf-lib + pdf.js）
 │   │   ├── archiveTools.ts  ZIP 创建/解压（JSZip）
 │   │   ├── bgRemoval.ts     背景去除模型的封装
+│   │   ├── qrStyle.ts       样式化二维码的几何生成逻辑，canvas 和 SVG 两种
+│   │   │                     渲染器共用，确保 PNG 和 SVG 下载始终一致
+│   │   ├── steganography.ts  隐写工具的最低位嵌入/提取逻辑
+│   │   ├── deepMediaMeta.ts  手写的 MP4/MOV box、ID3、WAV RIFF INFO 块读取器，
+│   │   │                     供元数据查看器的视频/音频深度解析使用
 │   │   ├── usageLimit.ts    本地每日使用计数器
 │   │   ├── validate.ts      基于文件头字节的类型嗅探（从不信任扩展名）
 │   │   └── format.ts        字节数/时长/压缩比的格式化辅助函数
@@ -275,7 +306,7 @@ convertly/
 │   │   ├── controls.ts      分段控件、范围滑块、预估条
 │   │   ├── resultPanel.ts   所有工具共用的处理前后对比 + 下载界面
 │   │   ├── processPanel.ts  一步步展示的“处理中”界面
-│   │   ├── usageBadge.ts    “今日已用 N/100 次”提示条和达到限制后的面板
+│   │   ├── usageBadge.ts    “今日已用 N/500 次”提示条和达到限制后的面板
 │   │   ├── themeToggle.ts   浅色/深色模式切换
 │   │   ├── socialIcons.ts   页脚用的内联 SVG 品牌图标
 │   │   ├── toolIcons.ts     每个工具一个手绘线条图标，用在工具中心的卡片上
@@ -301,7 +332,13 @@ convertly/
 │   │   ├── pdfTool.ts          buildImagesToPdf, buildPdfToImages, buildMergePdfs,
 │   │   │                        buildSplitPdf
 │   │   ├── audioTool.ts        buildAudioTool
-│   │   └── archiveTool.ts      buildCreateZip, buildExtractZip
+│   │   ├── archiveTool.ts      buildCreateZip, buildExtractZip
+│   │   ├── qrTool.ts           buildQrCodeTool
+│   │   ├── steganographyTool.ts buildSteganographyTool
+│   │   ├── metadataTool.ts     buildMetadataTool
+│   │   ├── photoTools.ts       buildResizeImageTool, buildCropImageTool,
+│   │   │                        buildWatermarkImageTool, buildFilterImageTool
+│   │   └── cardCreatorTool.ts  buildCardCreatorTool
 │   ├── style.css           完整的设计令牌系统（颜色、间距、圆角、浅/深色主题
 │   │                        覆盖）以及每个组件的样式
 │   └── main.ts             应用外壳：页头/导航、大图区、页脚、把每个工具 id

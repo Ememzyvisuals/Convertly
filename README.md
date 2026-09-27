@@ -92,6 +92,12 @@ a result. Every one of them below is real and working today, not a mockup.
   video's audio track as a standalone MP3, and replace a video's audio track entirely
   with another audio file or another video's audio (its own sound is dropped, the
   result runs as long as the shorter of the two). Same FFmpeg engine as Compress.
+- **Resize, crop, watermark, filters**: resize by exact dimensions or a percentage
+  preset with optional aspect-ratio lock; an interactive drag-to-move,
+  drag-to-resize crop box with a live preview; a text watermark with a 9-point anchor
+  grid, color, opacity, and size controls; and CSS-filter-backed photo filters
+  (grayscale, sepia, invert, brightness, contrast, saturate, blur) with a live
+  before/after canvas.
 
 **PDF**
 - **Images to PDF**: combine any number of PNG/JPEG/WebP/BMP images into one PDF, either
@@ -119,13 +125,39 @@ a result. Every one of them below is real and working today, not a mockup.
 - **Extract a zip**: reads the real contents and lets you download each file
   individually.
 
+**Utilities**
+- **QR code generator**: encode text, a link, an email address, or a phone number,
+  with a choice of error-correction level. Fully brandable: square, rounded, or dot
+  module styles with matching styled finder-eye corners, a color picker for the code
+  and background colors, and an optional logo dropped in the center (error correction
+  auto-locks to the highest level while a logo is attached, so it keeps scanning
+  underneath it). PNG and SVG downloads share the same styled renderer, so they always
+  match, and every style/logo combination is verified against a real QR decoder, not
+  just checked visually.
+- **Steganography**: hide a text message or an entire file inside an ordinary-looking
+  PNG, using the lowest bit of each pixel, a change too small to see. Reveal mode
+  extracts it back out, gated by a magic-number check so an ordinary photo is never
+  mistaken for one with hidden data.
+- **Metadata viewer**: reads every metadata tag it can find, not a curated shortlist.
+  For images: every EXIF/TIFF sub-block (camera, lens, exposure, GPS resolved to a
+  clickable map link, IPTC, XMP, ICC color profile), any embedded thumbnail image
+  (extracted and downloadable on its own), and PNG `tEXt`/`iTXt` chunks read directly
+  (this is where AI image generators like Stable Diffusion stash the full generation
+  prompt). For video: MP4/MOV container tags (title, artist, comment, creation date,
+  per-track info), reading both the classic iTunes atom scheme and the QuickTime
+  keys/`ilst` scheme iPhones use. For audio: full ID3v2/ID3v1 tags in MP3s, and WAV's
+  exact `fmt` chunk values plus its RIFF INFO tags.
+- **Card creator**: love letter, Valentine, birthday, and thank-you occasion templates,
+  each with its own hand-drawn canvas decorations, color palette, and default message.
+  Enter a recipient, message, and signature and get a rendered, downloadable card.
+
 **Across every tool**
 - **Before/after previews**: the original file and the processed result are shown side
   by side (or, for audio, a real playable result), with the download action directly
   under the result.
 - **Multi-file uploads where the tool needs them** (PDF merge, images to PDF, zip
   creation), with an ordered list you can reorder or trim before running anything.
-- **Local daily usage counter**: a soft, per-browser limit (100 runs per day, shown
+- **Local daily usage counter**: a soft, per-browser limit (500 runs per day, shown
   under each tool's Run button), stored in `localStorage`. This is the client-side
   equivalent of "how a site knows you're logged in", not real server-side abuse
   prevention (clearing site data or a private window resets it), and the UI is upfront
@@ -285,6 +317,11 @@ convertly/
 │   │   ├── pdfTools.ts      images-to-PDF, PDF-to-images, merge, split (pdf-lib + pdf.js)
 │   │   ├── archiveTools.ts  ZIP create/extract (JSZip)
 │   │   ├── bgRemoval.ts     background removal model wrapper
+│   │   ├── qrStyle.ts       styled QR code geometry, shared by the canvas and SVG
+│   │   │                     renderers so a PNG and SVG download always match
+│   │   ├── steganography.ts  LSB embed/extract for the steganography tool
+│   │   ├── deepMediaMeta.ts  manual MP4/MOV box, ID3, and WAV RIFF INFO chunk readers
+│   │   │                     for the metadata viewer's video/audio deep dump
 │   │   ├── usageLimit.ts    the local daily usage counter
 │   │   ├── validate.ts      magic-byte file type sniffing (never trusts extensions)
 │   │   └── format.ts        byte/duration/reduction formatting helpers
@@ -293,7 +330,7 @@ convertly/
 │   │   ├── controls.ts      segmented controls, range sliders, estimate strips
 │   │   ├── resultPanel.ts   the before/after result + download UI, shared by every tool
 │   │   ├── processPanel.ts  the step-by-step "processing" UI
-│   │   ├── usageBadge.ts    the "N of 100 runs used today" strip and limit-reached panel
+│   │   ├── usageBadge.ts    the "N of 500 runs used today" strip and limit-reached panel
 │   │   ├── themeToggle.ts   light/dark mode switch
 │   │   ├── socialIcons.ts   inline SVG brand marks for the footer
 │   │   ├── toolIcons.ts     one hand-drawn stroke icon per tool, used on the hub cards
@@ -321,7 +358,13 @@ convertly/
 │   │   ├── pdfTool.ts          buildImagesToPdf, buildPdfToImages, buildMergePdfs,
 │   │   │                        buildSplitPdf
 │   │   ├── audioTool.ts        buildAudioTool
-│   │   └── archiveTool.ts      buildCreateZip, buildExtractZip
+│   │   ├── archiveTool.ts      buildCreateZip, buildExtractZip
+│   │   ├── qrTool.ts           buildQrCodeTool
+│   │   ├── steganographyTool.ts buildSteganographyTool
+│   │   ├── metadataTool.ts     buildMetadataTool
+│   │   ├── photoTools.ts       buildResizeImageTool, buildCropImageTool,
+│   │   │                        buildWatermarkImageTool, buildFilterImageTool
+│   │   └── cardCreatorTool.ts  buildCardCreatorTool
 │   ├── style.css           the entire design token system (colors, spacing, radii,
 │   │                        light/dark theme overrides) and every component's styles
 │   └── main.ts             app shell: header/nav, hero, footer, the `TOOL_PAGES`
