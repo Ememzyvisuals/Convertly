@@ -593,56 +593,62 @@ button {
 /* ---------- Upload zone ---------- */
 
 .dropzone {
-  border: 1px solid var(--line);
+  border: 1.5px dashed var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--bg-raised);
-  padding: 44px 28px;
+  padding: 36px 28px 24px;
   text-align: center;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 @media (max-width: 480px) {
-  .dropzone { padding: 32px 16px; }
+  .dropzone { padding: 26px 16px 18px; }
 }
 
 .dropzone.drag-over {
   border-color: var(--accent);
+  border-style: solid;
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-raised));
 }
 
 .dropzone-icon {
-  width: 34px; height: 34px;
-  margin: 0 auto 16px;
-  color: var(--text-faint);
+  width: 104px;
+  margin: 0 auto 6px;
 }
+.dropzone-icon picture, .dropzone-icon img { display: block; width: 100%; height: auto; }
 
 .dropzone p {
-  margin: 0 0 4px;
+  margin: 0;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 14.5px;
 }
 
-.dropzone .accept-list {
+.dropzone-meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 16px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-faint);
-  margin-top: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
 }
 
 .file-picker-btn {
   appearance: none;
-  border: 1px solid var(--line-strong);
-  background: var(--bg-inset);
-  color: var(--text);
-  border-radius: var(--radius-pill);
-  padding: 9px 18px;
-  font-size: 14px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   cursor: pointer;
-  margin-top: 14px;
 }
-.file-picker-btn { transition: border-color 0.16s ease, transform 0.16s ease; }
-.file-picker-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-.file-picker-btn:active { transform: translateY(0); }
+.file-picker-btn:hover { color: var(--accent-hover, var(--accent)); }
 
 .dropzone.drag-over .dropzone-icon { animation: dz-float 0.9s ease-in-out infinite; }
 @keyframes dz-float {
@@ -698,11 +704,15 @@ button {
   text-overflow: ellipsis;
 }
 .file-sub {
-  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
   color: var(--text-faint);
   margin-top: 3px;
 }
+.file-sub .mono { font-family: var(--font-mono); }
+.file-status { color: var(--accent); font-weight: 500; }
 
 .file-remove {
   appearance: none;
@@ -1393,15 +1403,21 @@ select, .checkbox-row {
 .hub-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
+  gap: 18px 14px;
+  margin-top: 16px;
 }
 
+/* A file-folder silhouette: a small tab grows out of the card's top-left corner, the way a
+ * manila folder's index tab sits above its body. Built from the card itself (flush top-left
+ * corner) plus one pseudo-element for the tab, both sharing the card's own background and
+ * border so they read as a single cut-out shape rather than two stacked rectangles. */
 .hub-card {
   appearance: none;
   text-align: left;
+  position: relative;
   background: var(--bg-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border-radius: 4px var(--radius-md) var(--radius-md) var(--radius-md);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -1410,11 +1426,26 @@ select, .checkbox-row {
   cursor: pointer;
   transition: border-color 0.16s ease, transform 0.16s ease, background 0.16s ease;
 }
+.hub-card::before {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: -1px;
+  width: 42%;
+  min-width: 56px;
+  height: 12px;
+  background: inherit;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  transition: border-color 0.16s ease;
+}
 .hub-card:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
   background: var(--bg-hover);
 }
+.hub-card:hover::before { border-color: var(--accent); }
 .hub-card-icon {
   display: flex;
   align-items: center;

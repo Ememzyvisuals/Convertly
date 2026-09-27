@@ -16,7 +16,18 @@ export interface Uploader {
   reset: () => void;
 }
 
-const DROPZONE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 4v11m0-11 4 4m-4-4-4 4"/><path d="M4.5 15.5v2A2.5 2.5 0 0 0 7 20h10a2.5 2.5 0 0 0 2.5-2.5v-2"/></svg>`;
+// The dropzone's centerpiece is a small crop of Convertly's own mascot (the same character
+// from the landing page hero, not a generic upload glyph), so the upload step still feels
+// like part of the same product rather than a borrowed form control.
+function dropzoneMascot(): HTMLElement {
+  const wrap = el("div", { class: "dropzone-icon" });
+  wrap.innerHTML = `
+    <picture>
+      <source srcset="/brand/mascot-bust.webp" type="image/webp" />
+      <img src="/brand/mascot-bust.png" alt="" width="130" height="114" />
+    </picture>`;
+  return wrap;
+}
 
 export function createUploader(opts: UploaderOptions): Uploader {
   const root = el("div", { class: "uploader" });
@@ -24,14 +35,14 @@ export function createUploader(opts: UploaderOptions): Uploader {
 
   function renderDropzone() {
     clear(root);
+    const button = el("button", { type: "button", class: "file-picker-btn" }, ["choose a file"]);
     const zone = el("div", { class: "dropzone", role: "group", "aria-label": "Upload a file" }, [
-      (() => {
-        const wrap = el("div", { class: "dropzone-icon" });
-        wrap.innerHTML = DROPZONE_ICON;
-        return wrap;
-      })(),
-      el("p", {}, ["Drag a file here, or choose one from your device."]),
-      el("div", { class: "accept-list" }, [opts.acceptLabel]),
+      dropzoneMascot(),
+      el("p", {}, ["Drag and drop a file here, or ", button, "."]),
+      el("div", { class: "dropzone-meta" }, [
+        el("span", {}, ["Accepted: ", opts.acceptLabel]),
+        opts.maxBytes ? el("span", {}, [`Max size: ${formatBytes(opts.maxBytes)}`]) : null,
+      ].filter(Boolean) as HTMLElement[]),
     ]);
 
     const input = el("input", {
@@ -41,7 +52,6 @@ export function createUploader(opts: UploaderOptions): Uploader {
       id: "file-input-" + Math.random().toString(36).slice(2),
     }) as HTMLInputElement;
 
-    const button = el("button", { type: "button", class: "file-picker-btn" }, ["Choose a file"]);
     button.addEventListener("click", () => input.click());
 
     input.addEventListener("change", () => {
@@ -50,7 +60,7 @@ export function createUploader(opts: UploaderOptions): Uploader {
       input.value = "";
     });
 
-    zone.append(input, button);
+    zone.appendChild(input);
     root.appendChild(zone);
 
     zone.addEventListener("dragenter", (e) => {
@@ -105,7 +115,10 @@ export function createUploader(opts: UploaderOptions): Uploader {
 
     const meta = el("div", { class: "file-meta" }, [
       el("div", { class: "file-name" }, [file.name]),
-      el("div", { class: "file-sub mono" }, [`${formatBytes(file.size)} · ${ext}`]),
+      el("div", { class: "file-sub" }, [
+        el("span", { class: "mono" }, [`${formatBytes(file.size)} · ${ext}`]),
+        el("span", { class: "file-status" }, ["Ready"]),
+      ]),
     ]);
 
     const remove = el("button", { type: "button", class: "file-remove", "aria-label": "Remove file" }, ["×"]);
@@ -163,33 +176,30 @@ export function createMultiUploader(opts: MultiUploaderOptions): MultiUploader {
   let files: File[] = [];
   let dragCounter = 0;
 
-  const dropIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 4v11m0-11 4 4m-4-4-4 4"/><path d="M4.5 15.5v2A2.5 2.5 0 0 0 7 20h10a2.5 2.5 0 0 0 2.5-2.5v-2"/></svg>`;
-
-  const zone = el("div", { class: "dropzone", role: "group", "aria-label": "Add files" }, [
-    (() => {
-      const wrap = el("div", { class: "dropzone-icon" });
-      wrap.innerHTML = dropIcon;
-      return wrap;
-    })(),
-    el("p", {}, ["Drag files here, or choose from your device."]),
-    el("div", { class: "accept-list" }, [opts.acceptLabel]),
-  ]);
-
   const input = el("input", {
     type: "file",
     multiple: "",
     accept: opts.inputAccept,
     class: "sr-only",
   }) as HTMLInputElement;
-  const button = el("button", { type: "button", class: "file-picker-btn" }, ["Choose files"]);
+  const button = el("button", { type: "button", class: "file-picker-btn" }, ["choose files"]);
   button.addEventListener("click", () => input.click());
+
+  const zone = el("div", { class: "dropzone", role: "group", "aria-label": "Add files" }, [
+    dropzoneMascot(),
+    el("p", {}, ["Drag and drop files here, or ", button, "."]),
+    el("div", { class: "dropzone-meta" }, [
+      el("span", {}, ["Accepted: ", opts.acceptLabel]),
+      opts.maxBytes ? el("span", {}, [`Max size: ${formatBytes(opts.maxBytes)}`]) : null,
+    ].filter(Boolean) as HTMLElement[]),
+  ]);
 
   input.addEventListener("change", () => {
     if (input.files) void addFiles(Array.from(input.files));
     input.value = "";
   });
 
-  zone.append(input, button);
+  zone.appendChild(input);
 
   zone.addEventListener("dragenter", (e) => {
     e.preventDefault();
@@ -239,7 +249,10 @@ export function createMultiUploader(opts: MultiUploaderOptions): MultiUploader {
         el("span", { class: "multi-file-index mono" }, [String(i + 1)]),
         el("div", { class: "multi-file-meta" }, [
           el("div", { class: "file-name" }, [file.name]),
-          el("div", { class: "file-sub mono" }, [`${formatBytes(file.size)} · ${ext}`]),
+          el("div", { class: "file-sub" }, [
+            el("span", { class: "mono" }, [`${formatBytes(file.size)} · ${ext}`]),
+            el("span", { class: "file-status" }, ["Ready"]),
+          ]),
         ]),
         el("div", { class: "multi-file-actions" }, [
           (() => {
