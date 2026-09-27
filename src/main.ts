@@ -2,6 +2,7 @@ import "@fontsource/outfit/400.css";
 import "@fontsource/outfit/500.css";
 import "@fontsource/outfit/600.css";
 import "@fontsource/outfit/700.css";
+import "@fontsource/outfit/800.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/jetbrains-mono/600.css";
@@ -74,6 +75,8 @@ function heroChip(dotClass: string, title: string, body: string, position: "top"
 }
 
 function buildHero(onGetStarted: () => void): HTMLElement {
+  const bgWord = el("div", { class: "hero-bg-word", "aria-hidden": "true" }, ["LIGHTER"]);
+
   const character = el("div", { class: "hero-character", "aria-hidden": "true" });
   character.innerHTML = `
     <picture>
@@ -82,6 +85,7 @@ function buildHero(onGetStarted: () => void): HTMLElement {
     </picture>`;
 
   const visual = el("div", { class: "hero-visual-wrap" }, [
+    bgWord,
     character,
     heroChip("good", "Nothing uploaded", "runs 100% in your browser", "top"),
     heroChip("accent", "Real engines", "FFmpeg, canvas, a real tracer", "bottom"),
@@ -95,7 +99,7 @@ function buildHero(onGetStarted: () => void): HTMLElement {
       el("div", { class: "hero-copy" }, [
         el("h1", {}, ["Make your files lighter, cleaner, ready."]),
         el("p", { class: "lede" }, [
-          "Convert image formats, turn raster art into clean SVG, and compress images and video. Processed on your device, not uploaded to a server.",
+          "Convert image formats, turn raster art into clean SVG, compress images and video, and zip any file type down to a smaller archive. Processed on your device, not uploaded to a server.",
         ]),
         el("div", { class: "hero-facts" }, [
           el("div", { class: "hero-fact" }, [el("strong", {}, ["No account"]), "Nothing to sign up for, nothing to pay for."]),
@@ -517,7 +521,7 @@ const hubCategories: HubCategory[] = [
   {
     title: "Archives",
     tools: [
-      { id: "zip-create", label: "Create a zip", desc: "Bundle any files into one archive.", icon: "zip-create", onClick: () => goTo("workspace"), legacy: true },
+      { id: "zip-create", label: "Create a zip", desc: "Compress any file type by bundling it into an archive.", icon: "zip-create", onClick: () => goTo("workspace"), legacy: true },
       { id: "zip-extract", label: "Extract a zip", desc: "Pull files back out of an archive.", icon: "zip-extract", onClick: () => goTo("workspace"), legacy: true },
     ],
   },

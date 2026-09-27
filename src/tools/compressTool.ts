@@ -30,7 +30,7 @@ export function buildCompressTool(): HTMLElement {
   );
 
   const otherFilesNote = el("div", { class: "control-hint", style: "margin-bottom:22px" }, [
-    "Other file types (documents, archives, audio) aren't supported yet. There's no general-purpose compression engine wired in for them, so this tool sticks to what it can genuinely compress rather than faking it.",
+    "This tool re-encodes images and video specifically. For any other file type, use Create a zip in Archives, zipping shrinks most files and works on anything.",
   ]);
 
   const subHost = el("div");
