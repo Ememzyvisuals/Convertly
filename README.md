@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo-banner.png" alt="Convertly, local, browser-based file tools" width="480">
+  <img src="public/logo-banner.png" alt="Convertly" width="420">
 </p>
 
 # Convertly
@@ -129,10 +129,11 @@ a result. Every one of them below is real and working today, not a mockup.
   prevention (clearing site data or a private window resets it), and the UI is upfront
   about that rather than pretending otherwise.
 - **Light and dark mode**, dark by default, remembered per browser.
-- **Landing page and a separate workspace page**: the home page is the pitch, a "Get
-  started" button (and "Open tools" in the header) takes you to a dedicated workspace
-  with the tools. The URL updates too (`#/app`), so the workspace is linkable and
-  survives a refresh.
+- **Landing page, a tools hub, and one dedicated page per tool**: the home page is the
+  pitch, a "Get started" button (and "Open tools" in the header) takes you to a hub
+  page listing every module as its own card. Each card opens that tool on its own
+  page (`#/tools/<id>`, for example `#/tools/merge-pdf`), so every tool is directly
+  linkable, survives a refresh, and works with the browser's back/forward buttons.
 
 Every result screen shows the **actual** output size and processing time, not a
 pre-scripted number. On some inputs (already-compressed images, tiny or noisy test
@@ -262,6 +263,11 @@ convertly/
 │                          the folder you deploy as-is
 ├── public/
 │   ├── ffmpeg/            FFmpeg WASM core, served as static files, loaded lazily
+│   ├── brand/             the mascot renders: mascot-hero.png/webp (landing hero,
+│   │                       true alpha transparency) and mascot-bust.png/webp (a crop
+│   │                       of the same file, used as the upload dropzone graphic)
+│   ├── logo-banner.png/svg  the banner at the top of this README, built from the same
+│   │                         badge glyph and Fredoka wordmark as the in-app header
 │   └── favicon.svg
 ├── src/
 │   ├── lib/               the actual conversion / vectorization / compression engines,
@@ -287,32 +293,47 @@ convertly/
 │   │   ├── usageBadge.ts    the "N of 100 runs used today" strip and limit-reached panel
 │   │   ├── themeToggle.ts   light/dark mode switch
 │   │   ├── socialIcons.ts   inline SVG brand marks for the footer
-│   │   ├── illustrations.ts original vector avatar illustrations (hero + workspace)
+│   │   ├── toolIcons.ts     one hand-drawn stroke icon per tool, used on the hub cards
 │   │   └── dom.ts           tiny `el(...)` helper for building DOM nodes without a
 │   │                         framework
-│   ├── tools/              one file per tool panel, wires a `lib/` engine to the
-│   │   │                    shared `ui/` components
-│   │   ├── convertTool.ts
-│   │   ├── vectorizeTool.ts
-│   │   ├── compressTool.ts
-│   │   ├── videoExtraTool.ts   trim, video-to-GIF, extract/replace audio panel
-│   │   ├── pdfTool.ts          images-to-PDF, PDF-to-images, merge, split panel
-│   │   ├── audioTool.ts        audio conversion panel
-│   │   └── archiveTool.ts      ZIP create/extract panel
+│   ├── pages/              page-level shells, not tied to any one tool
+│   │   ├── toolsHub.ts       the "Open tools" index: one folder-shaped card per module,
+│   │   │                      grouped into categories
+│   │   └── toolPage.ts       the shell every dedicated tool page is built from (back
+│   │                          link, title, description, then that tool's own body)
+│   ├── tools/              one file per tool, each exporting a flat `build*Tool()`
+│   │   │                    function that wires a `lib/` engine to the shared `ui/`
+│   │   │                    components; a file with several related tools (PDF, the
+│   │   │                    extra video tools) exports one function per tool rather
+│   │   │                    than bundling them behind an internal mode switch, since
+│   │   │                    each one gets its own dedicated page
+│   │   ├── convertTool.ts      buildConvertFormatTool, buildRemoveBgTool
+│   │   ├── vectorizeTool.ts    buildVectorizeTool
+│   │   ├── compressTool.ts     buildCompressImageTool, buildCompressVideoTool
+│   │   ├── videoExtraTool.ts   buildTrimVideoTool, buildVideoToGifTool,
+│   │   │                        buildExtractAudioTool, buildReplaceAudioTool
+│   │   ├── pdfTool.ts          buildImagesToPdf, buildPdfToImages, buildMergePdfs,
+│   │   │                        buildSplitPdf
+│   │   ├── audioTool.ts        buildAudioTool
+│   │   └── archiveTool.ts      buildCreateZip, buildExtractZip
 │   ├── style.css           the entire design token system (colors, spacing, radii,
 │   │                        light/dark theme overrides) and every component's styles
-│   └── main.ts             app shell: header/nav, hero, workspace tab switching,
-│                            footer, and the hash-based view routing (landing / workspace)
+│   └── main.ts             app shell: header/nav, hero, footer, the `TOOL_PAGES`
+│                            registry mapping each tool id to its page, and the
+│                            hash-based routing (landing / tools hub / one tool page)
 ├── index.html              app entry point, also has the inline no-flash theme script
 ├── netlify.toml
 └── package.json
 ```
 
 There is deliberately no framework (no React, Vue, or similar) and no client-side
-router library. The workspace/landing "routing" is a small `goTo(view)` function in
-`main.ts` that toggles two view containers and updates `window.location.hash`. This is
-intentional, the app is simple enough that a framework would add build complexity
-without adding much.
+router library. Routing is a `TOOL_PAGES` registry in `main.ts` (tool id to
+`{title, description, build}`) plus a `goTo(view)`/`goToTool(id)` pair that toggle
+between three view containers and update `window.location.hash` to `""`, `#/tools`, or
+`#/tools/<id>`. A `hashchange` listener re-parses the hash on every navigation, so the
+browser's back/forward buttons and a hand-typed `#/tools/<id>` link both work, not just
+clicks inside the app. This is intentional, the app is simple enough that a framework
+would add build complexity without adding much.
 
 ## How a tool is built, for contributors
 
@@ -323,10 +344,12 @@ Every existing tool follows the same shape, and any new tool (see the
    similar) and options, does real work (not a placeholder), and returns a real result
    (a `Blob`, dimensions, whatever's relevant). This makes the engine testable and
    reusable outside the UI layer.
-2. **The tool panel lives in `src/tools/`.** It builds the controls for that specific
-   tool (using the shared components in `src/ui/controls.ts`), wires them to the
-   engine, and on completion calls `renderResultPanel(...)` from `src/ui/resultPanel.ts`
-   with the real before/after data, never a mocked number.
+2. **The tool panel lives in `src/tools/`, as a flat exported `build*Tool()` function
+   that returns one `HTMLElement`.** One function, one job, no internal mode switch, so
+   it can go straight onto its own dedicated page. It builds the controls for that
+   specific tool (using the shared components in `src/ui/controls.ts`), wires them to
+   the engine, and on completion calls `renderResultPanel(...)` from
+   `src/ui/resultPanel.ts` with the real before/after data, never a mocked number.
 3. **Every tool checks `getUsageStatus()` before running**, and shows
    `usageLimitReachedPanel()` if the local daily limit has been hit (see
    `src/lib/usageLimit.ts` and `src/ui/usageBadge.ts`).
@@ -335,9 +358,12 @@ Every existing tool follows the same shape, and any new tool (see the
    `renderResultPanel`). If a new tool has a real limitation (a document conversion
    that isn't pixel-perfect, say), that limitation belongs in the UI copy, not just in
    this README.
-5. **New tools get registered in the `categories` array inside `buildWorkspace()` in
-   `src/main.ts`**, either as a new entry in an existing category's `tools` list, or as
-   a new category if the tool doesn't fit any existing one.
+5. **New tools get a `TOOL_PAGES` entry and a hub card in `src/main.ts`.** Add
+   `{title, description, icon, build}` to the `TOOL_PAGES` registry under a unique id,
+   then add a matching card (same id, plus a label/desc and a tool icon from
+   `src/ui/toolIcons.ts`) to the right category in `hubCategories`. That one registry
+   entry is what makes the tool reachable at `#/tools/<id>`, both from its hub card and
+   from a direct link.
 
 ## Design system and conventions
 

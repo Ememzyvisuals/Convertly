@@ -327,7 +327,7 @@ function buildFooter(onGoToTool: (id: string) => void): HTMLElement {
   const aboutCol = el("div", { class: "footer-col footer-col-about" }, [
     el("div", { class: "footer-credit" }, [
       brandMark,
-      el("span", {}, [el("strong", {}, ["Convertly"]), ", built by Ememzyvisuals"]),
+      el("span", {}, [el("strong", { class: "footer-brand-word" }, ["Convertly"]), ", built by Ememzyvisuals"]),
     ]),
     el("p", { class: "footer-about-text" }, [
       "A browser-based file toolkit. Nothing you work on is uploaded to a server, every conversion, trace, and compression runs on your own device.",
