@@ -67,13 +67,6 @@ function buildHeader(onNavigate: (view: View) => void): { root: HTMLElement; set
   return { root, setView };
 }
 
-function heroChip(dotClass: string, title: string, body: string, position: "top" | "bottom"): HTMLElement {
-  return el("div", { class: `hero-chip hero-chip-${position}` }, [
-    el("span", { class: `hero-chip-dot ${dotClass}` }),
-    el("div", {}, [el("strong", {}, [title]), el("span", {}, [body])]),
-  ]);
-}
-
 function buildHero(onGetStarted: () => void): HTMLElement {
   const bgWord = el("div", { class: "hero-bg-word", "aria-hidden": "true" }, ["LIGHTER"]);
 
@@ -84,12 +77,7 @@ function buildHero(onGetStarted: () => void): HTMLElement {
       <img src="/brand/mascot-hero.png" alt="" width="380" height="570" />
     </picture>`;
 
-  const visual = el("div", { class: "hero-visual-wrap" }, [
-    bgWord,
-    character,
-    heroChip("good", "Nothing uploaded", "runs 100% in your browser", "top"),
-    heroChip("accent", "Real engines", "FFmpeg, canvas, a real tracer", "bottom"),
-  ]);
+  const visual = el("div", { class: "hero-visual-wrap" }, [bgWord, character]);
 
   const getStartedBtn = el("button", { type: "button", class: "run-btn hero-cta" }, ["Get started"]);
   getStartedBtn.addEventListener("click", onGetStarted);
@@ -101,12 +89,12 @@ function buildHero(onGetStarted: () => void): HTMLElement {
         el("p", { class: "lede" }, [
           "Convert image formats, turn raster art into clean SVG, compress images and video, and zip any file type down to a smaller archive. Processed on your device, not uploaded to a server.",
         ]),
+        el("div", { class: "hero-cta-row" }, [getStartedBtn]),
         el("div", { class: "hero-facts" }, [
           el("div", { class: "hero-fact" }, [el("strong", {}, ["No account"]), "Nothing to sign up for, nothing to pay for."]),
           el("div", { class: "hero-fact" }, [el("strong", {}, ["Runs locally"]), "Files are processed in your browser and never leave your device."]),
           el("div", { class: "hero-fact" }, [el("strong", {}, ["Real engines"]), "FFmpeg, canvas codecs, and a real tracing engine. No faked results."]),
         ]),
-        el("div", { class: "hero-cta-row" }, [getStartedBtn]),
       ]),
       visual,
     ]),

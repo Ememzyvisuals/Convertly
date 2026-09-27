@@ -271,13 +271,22 @@ button {
   animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
 }
 
+/* A quiet trust bar under the CTA, not a set of floating badges: three short facts in a
+   row, separated by rules rather than cards, so it reads as supporting detail instead of
+   competing decoration. */
 .hero-facts {
-  display: flex;
-  gap: 26px;
-  margin-top: 32px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 44px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
   opacity: 0;
   animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+@media (max-width: 640px) {
+  .hero-facts { grid-template-columns: 1fr; gap: 18px; }
 }
 
 @keyframes hero-rise {
@@ -294,31 +303,30 @@ button {
 
 .hero-fact {
   font-size: 13px;
+  line-height: 1.5;
   color: var(--text-faint);
-  max-width: 20ch;
-  padding-left: 12px;
-  border-left: 1px solid var(--line-strong);
+  max-width: 26ch;
 }
 
 .hero-fact strong {
   display: block;
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 13px;
-  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11.5px;
+  margin-bottom: 6px;
 }
 
 .hero-cta {
-  margin-top: 34px;
+  margin-top: 0;
 }
 .hero-cta-row {
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-}
-.hero-cta-row .hero-cta {
-  margin-top: 0;
+  margin-top: 30px;
 }
 
 .view-workspace {
@@ -370,52 +378,7 @@ button {
 .hero-character svg, .hero-character img { width: 100%; height: auto; display: block; }
 .hero-character picture { display: block; }
 
-.hero-chip {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, calc(var(--shadow-strength) * 0.55));
-  max-width: 190px;
-}
-
-.hero-chip strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 12.5px;
-  color: var(--text);
-}
-.hero-chip span {
-  display: block;
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-top: 1px;
-}
-
-.hero-chip-dot {
-  flex: none;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-.hero-chip-dot.good { background: var(--success); }
-.hero-chip-dot.accent { background: var(--accent); }
-
-.hero-chip-top { left: 0; top: 18px; }
-.hero-chip-bottom { right: 0; bottom: 8px; }
-
-@media (max-width: 960px) {
-  .hero-chip-top { left: 8px; }
-  .hero-chip-bottom { right: 8px; }
-}
-
 @media (max-width: 560px) {
-  .hero-chip { display: none; }
   .hero-character { width: min(240px, 62vw); }
   .hero-bg-word { font-size: clamp(38px, 15vw, 60px); }
 }
