@@ -65,56 +65,9 @@ discourage abuse (see [Known limitations](#known-limitations-by-design)), not a 
 
 ## What's actually built right now
 
-Two separate things live in this one app. **Open tools** is the workspace: quick,
-single-purpose converters organized into categories (Images & video, PDF, Audio,
-Archives), no signup, drop a file and get a result. **Convertly Studio** is a
-different, much bigger module: a real visual editor, reached from its own "Studio"
-link in the header, with its own landing page rather than being another tab in the
-workspace. Every one of them below is real and working today, not a mockup.
-
-### Convertly Studio
-
-Opening Studio lands on a dashboard first (recent-work style catalog, a "start from
-scratch" action, and a templates row), the same pattern Canva or Figma use before
-dropping you into an actual editor, not a bare canvas.
-
-- **Design & image editing (live today)**: a real, direct-manipulation canvas, not a
-  configure-then-run tool. Drag elements to move them, use the transformer's corner
-  handles to resize or rotate, double-click text to edit it in place. Built on
-  [`Konva`](https://konvajs.org/), an actual 2D canvas scene graph.
-  - **Elements**: text (six bundled Google Fonts, weight/style toggles, size, color),
-    rectangles, circles, and uploaded images, all draggable and resizable.
-  - **Background removal on any uploaded image**, right inside the editor, using the
-    same real segmentation model as the Convert tool's background removal.
-  - **Layers panel**: reorder, delete, or duplicate any element.
-  - **Undo/redo**, four canvas size presets (square post, story, landscape, poster),
-    and PNG/JPEG export at the canvas's real design resolution, not the on-screen
-    display size.
-  - **Templates**: a handful of original starter layouts (a sale announcement, a
-    quote card, a story promo, an event poster), pre-loaded onto the canvas and fully
-    editable, more (including real open-licensed sets) planned.
-  - Loads as its own chunk on demand, so visitors who never open Studio never
-    download Konva or its fonts.
-- **Video editing (live today)**: a real timeline editor built on the existing FFmpeg
-  WebAssembly engine, not a form of sliders. Trim clips on a draggable timeline with a
-  live scrubbing preview, add text/sticker overlays with drag-to-position and
-  resize/rotate handles, and a full set of entrance animations (fade, pop, bounce,
-  slide) that are genuinely burned into the exported file, not just previewed.
-  - **Professional auto-captioning**: a dedicated Captions tab with Auto Caption
-    (real in-browser speech-to-text via a bundled Whisper model, grouped into natural
-    short caption phrases with word-level timing), a Caption Library of animated
-    caption templates (fade, karaoke-style word highlight, bold pop, bouncy box,
-    slide, type-on, and more, each with its own small animated preview), a Captions
-    list for direct editing, and a Transcript view for correcting text and jumping the
-    playhead to any line. Every caption is fully editable after generation: text, timing,
-    on-screen position (drag directly on the video), and style, per-caption or applied
-    to all at once.
-  - **Guided tour**: an interactive walkthrough of the real Studio interface (not a
-    slideshow), reachable from Convertly Studio's own dashboard or the landing page's
-    "Watch the demo" button, spotlighting each real feature in turn with a short
-    explanation.
-- **Audio editing (live today)**: trim, volume, and fades on the same FFmpeg engine
-  already powering the Audio tools.
+Convertly is a single, focused workspace: quick, single-purpose converters organized
+into categories (Images & video, PDF, Audio, Archives), no signup, drop a file and get
+a result. Every one of them below is real and working today, not a mockup.
 
 **Images & video**
 - **Convert**: PNG, JPEG, WebP, and AVIF (when the visitor's browser supports encoding
@@ -188,23 +141,9 @@ that honestly in amber rather than hiding it.
 
 ## Roadmap, what's planned next
 
-The Studio's next milestone is a **CapCut-style video timeline**: real clips on a
-timeline you drag and trim by hand (not sliders in a form), a scrubbable playhead with
-live preview, and audio track editing (volume, fades, swapping in another track). The
-plan is to use the browser's [`WebCodecs`](https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API)
-API for the interactive part, fast, frame-accurate decoding for scrubbing and preview,
-without re-invoking FFmpeg for every frame, while final export still goes through the
-same FFmpeg WebAssembly build already proven in this app (it already does real
-trims and audio replacement; a client-side WebCodecs-only encode/mux pipeline is a much
-bigger, less battle-tested undertaking, and browser support for it is still uneven).
-This is a genuinely larger build than anything shipped so far and hasn't been started
-yet. Also planned for the Studio: reusable templates, image-to-sticker and
-video-to-sticker export, and a curated set of starter layouts.
-
-Beyond the Studio, the next step is a **Universal Converter** and a **Universal
-Compress** workspace, a single "drop a file, we detect the format, you pick the output"
-flow that sits in front of every tool above, rather than making people find the right
-category first.
+The next step is a **Universal Converter** and a **Universal Compress** workspace, a
+single "drop a file, we detect the format, you pick the output" flow that sits in front
+of every tool above, rather than making people find the right category first.
 
 Beyond that:
 - PDF: reorder, rotate, extract specific pages, and PDF compression (recompressing the
@@ -215,6 +154,8 @@ Beyond that:
   is good for ordinary formatting, tables, and images, and is explicitly not promised to
   be pixel-perfect for complex original layouts. PDF to text and PDF to a basic, editable
   DOCX (text-focused, not a layout clone) are in the same tier.
+- Continued polish of the existing tools' interface and mobile experience, this is the
+  current focus rather than new surfaces.
 
 **Explicitly not planned for now, and why:**
 - True DOC/DOCX/PPT/XLS/ODT conversion at full visual fidelity (original fonts, tables,
@@ -242,10 +183,10 @@ this to decide whether to fork, deploy, or contribute:
 - A pull request is open against [js-org/js.org](https://github.com/js-org/js.org) to
   register `convertly.js.org` as a friendlier custom domain, pointing at the Vercel
   deployment. Once merged, that becomes the primary link.
-- PDF, audio, and archive tools are implemented and live (see
-  [What's actually built right now](#whats-actually-built-right-now)). Only the
-  Universal Converter/Compress front door and document conversion, listed under
-  [Roadmap](#roadmap-whats-planned-next), are still ahead.
+- All tools listed under
+  [What's actually built right now](#whats-actually-built-right-now) are implemented
+  and live. Only the Universal Converter/Compress front door and document conversion,
+  listed under [Roadmap](#roadmap-whats-planned-next), are still ahead.
 
 ## Quick start for users
 
@@ -335,7 +276,6 @@ convertly/
 │   │   ├── pdfTools.ts      images-to-PDF, PDF-to-images, merge, split (pdf-lib + pdf.js)
 │   │   ├── archiveTools.ts  ZIP create/extract (JSZip)
 │   │   ├── bgRemoval.ts     background removal model wrapper
-│   │   ├── studioTemplates.ts starter templates for Studio's canvas editor (data only)
 │   │   ├── usageLimit.ts    the local daily usage counter
 │   │   ├── validate.ts      magic-byte file type sniffing (never trusts extensions)
 │   │   └── format.ts        byte/duration/reduction formatting helpers
@@ -358,18 +298,11 @@ convertly/
 │   │   ├── videoExtraTool.ts   trim, video-to-GIF, extract/replace audio panel
 │   │   ├── pdfTool.ts          images-to-PDF, PDF-to-images, merge, split panel
 │   │   ├── audioTool.ts        audio conversion panel
-│   │   ├── archiveTool.ts      ZIP create/extract panel
-│   │   └── studioTool.ts       Studio's canvas editor: text/shapes/images, layers,
-│   │                            undo/redo, PNG/JPEG export (Konva); its own lazy-loaded
-│   │                            chunk, opened from the Studio dashboard, not a tab
-│   ├── pages/
-│   │   └── studioHome.ts   Convertly Studio's own landing page/dashboard (surface
-│   │                        tiles, templates), separate from the Open Tools workspace
+│   │   └── archiveTool.ts      ZIP create/extract panel
 │   ├── style.css           the entire design token system (colors, spacing, radii,
 │   │                        light/dark theme overrides) and every component's styles
 │   └── main.ts             app shell: header/nav, hero, workspace tab switching,
-│                            Studio's own routing, footer, and the hash-based view
-│                            routing (landing / workspace / studio-home / studio-editor)
+│                            footer, and the hash-based view routing (landing / workspace)
 ├── index.html              app entry point, also has the inline no-flash theme script
 ├── netlify.toml
 └── package.json
@@ -451,7 +384,7 @@ Every existing tool follows the same shape, and any new tool (see the
 Issues and pull requests are welcome. A few practical notes before opening one:
 
 - Read [How a tool is built, for contributors](#how-a-tool-is-built-for-contributors)
-  first if you're adding a new conversion tool, the existing three tools are the
+  first if you're adding a new conversion tool, the existing tools are the
   reference implementation to follow.
 - Keep the "no server" principle intact for any new feature. If something genuinely
   can't be done client-side (see the Roadmap's "explicitly not planned" section), open

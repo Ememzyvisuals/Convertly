@@ -1,7 +1,7 @@
 /**
  * Original vector-avatar illustrations for Convertly.
  * Flat, geometric, built from simple shapes (circles, rounded rects) in the
- * product's own accent/lavender palette. Not based on, or a likeness of,
+ * product's own orange accent palette. Not based on, or a likeness of,
  * any existing character, product, or brand.
  */
 
@@ -17,10 +17,10 @@ export function heroAvatarSVG(): string {
     <circle cx="94" cy="56" r="4.5" fill="var(--text)"/>
     <path d="M68 70 q12 10 24 0" stroke="var(--text)" stroke-width="3" fill="none" stroke-linecap="round"/>
     <rect x="34" y="94" width="16" height="30" rx="8" fill="var(--accent)"/>
-    <rect x="110" y="94" width="16" height="30" rx="8" fill="#a5b4fc"/>
+    <rect x="110" y="94" width="16" height="30" rx="8" fill="#ffb066"/>
     <rect x="14" y="40" width="26" height="26" rx="7" fill="var(--bg-raised)" stroke="var(--line-strong)" stroke-width="1.4"/>
     <path d="M22 53h10M27 48v10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="130" cy="34" r="12" fill="#a5b4fc" opacity="0.9"/>
+    <circle cx="130" cy="34" r="12" fill="#ffb066" opacity="0.9"/>
     <path d="M125 34l3.5 3.5L136 30" stroke="#0a0a0a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
@@ -46,9 +46,9 @@ export function workspaceAvatarSVG(): string {
     <path d="M16 77h14M23 70v14" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
 
     <rect x="180" y="94" width="34" height="34" rx="9" fill="var(--bg-raised)" stroke="var(--line-strong)" stroke-width="1.4"/>
-    <path d="M188 111l6 6 12-14" stroke="#a5b4fc" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M188 111l6 6 12-14" stroke="#ffb066" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 
-    <circle cx="184" cy="42" r="16" fill="#a5b4fc" opacity="0.95"/>
+    <circle cx="184" cy="42" r="16" fill="#ffb066" opacity="0.95"/>
     <path d="M177 42h14M184 35v14" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round"/>
 
     <circle cx="24" cy="148" r="11" fill="var(--accent)" opacity="0.9"/>
@@ -94,7 +94,7 @@ export function heroCharacterSVG(): string {
     <circle cx="276" cy="292" r="18" fill="var(--bg-raised)" stroke="var(--line-strong)" stroke-width="2"/>
 
     <g transform="translate(238,258)">
-      <rect x="0" y="6" width="54" height="42" rx="7" fill="#a5b4fc"/>
+      <rect x="0" y="6" width="54" height="42" rx="7" fill="#ffb066"/>
       <path d="M0 12 L14 12 L20 6 L40 6 L40 14 L0 14 Z" fill="#c7d0ff"/>
       <path d="M13 28 l7 7 l16 -17" stroke="#0a0a0a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
@@ -105,7 +105,7 @@ export function heroCharacterSVG(): string {
     <circle cx="214" cy="118" r="8" fill="var(--text)"/>
     <path d="M162 140q28 22 56 0" stroke="var(--text)" stroke-width="5" fill="none" stroke-linecap="round"/>
 
-    <circle cx="300" cy="66" r="22" fill="#a5b4fc" opacity="0.95"/>
+    <circle cx="300" cy="66" r="22" fill="#ffb066" opacity="0.95"/>
     <path d="M291 66l7 7 15-16" stroke="#0a0a0a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
