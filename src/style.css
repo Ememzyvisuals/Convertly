@@ -2106,3 +2106,25 @@ select option {
   color: var(--text-muted);
   margin-bottom: 14px;
 }
+
+/* ---------------- QR code payment fields ---------------- */
+
+.qr-payment-fields { margin-bottom: 4px; }
+.qr-payment-note { grid-column: 1 / -1; }
+.qr-payment-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.qr-payment-input::placeholder { color: var(--text-faint); }
+.qr-payment-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}

@@ -6,10 +6,10 @@ import { createUsageStrip, usageLimitReachedPanel } from "../ui/usageBadge";
 import { triggerDownload, formatBytes } from "../lib/format";
 import { renderStyledQrCanvas, buildStyledQrSvg, type QrDotStyle } from "../lib/qrStyle";
 
-type QrType = "text" | "url" | "email" | "phone";
+type QrType = "text" | "url" | "email" | "phone" | "payment";
 type EcLevel = "L" | "M" | "Q" | "H";
 
-const PLACEHOLDERS: Record<QrType, string> = {
+const PLACEHOLDERS: Record<Exclude<QrType, "payment">, string> = {
   text: "Anything: a word, a number, a sentence, a Wi-Fi password...",
   url: "example.com or https://example.com/page",
   email: "someone@example.com",
@@ -42,6 +42,27 @@ export function buildQrCodeTool(): HTMLElement {
     placeholder: PLACEHOLDERS[type],
   }) as HTMLTextAreaElement;
 
+  // Payment details are their own set of labeled fields rather than one free-text box, since
+  // "put your account number in a QR code" really means several distinct pieces (who to pay,
+  // where, how much, why), and composing them here in a consistent order reads far better to
+  // whoever scans the code than expecting the person to format all of that in a text area
+  // themselves. This is a plain, formatted text payload, not a bank-specific EMV payment QR
+  // format, so it scans and displays correctly in any QR reader regardless of bank or country,
+  // rather than only working inside one banking app's own scanner.
+  const payAccountName = el("input", { type: "text", class: "qr-payment-input", placeholder: "Account name" }) as HTMLInputElement;
+  const payAccountNumber = el("input", { type: "text", class: "qr-payment-input", placeholder: "Account number" }) as HTMLInputElement;
+  const payBank = el("input", { type: "text", class: "qr-payment-input", placeholder: "Bank (or payment provider)" }) as HTMLInputElement;
+  const payAmount = el("input", { type: "text", class: "qr-payment-input", placeholder: "Amount (optional)" }) as HTMLInputElement;
+  const payNote = el("input", { type: "text", class: "qr-payment-input", placeholder: "Note, e.g. what this payment is for (optional)" }) as HTMLInputElement;
+  const paymentFields = el("div", { class: "controls-grid qr-payment-fields" }, [
+    el("div", { class: "control" }, [el("label", {}, ["Account name"]), payAccountName]),
+    el("div", { class: "control" }, [el("label", {}, ["Account number"]), payAccountNumber]),
+    el("div", { class: "control" }, [el("label", {}, ["Bank / provider"]), payBank]),
+    el("div", { class: "control" }, [el("label", {}, ["Amount"]), payAmount]),
+    el("div", { class: "control qr-payment-note" }, [el("label", {}, ["Note"]), payNote]),
+  ]);
+  paymentFields.style.display = "none";
+
   const typeCtrl = segmentedControl<QrType>(
     "What are you encoding",
     [
@@ -49,11 +70,15 @@ export function buildQrCodeTool(): HTMLElement {
       { value: "url", label: "Link" },
       { value: "email", label: "Email" },
       { value: "phone", label: "Phone" },
+      { value: "payment", label: "Payment" },
     ],
     type,
     (v) => {
       type = v;
-      textarea.placeholder = PLACEHOLDERS[type];
+      const isPayment = type === "payment";
+      textarea.style.display = isPayment ? "none" : "";
+      paymentFields.style.display = isPayment ? "" : "none";
+      if (!isPayment) textarea.placeholder = PLACEHOLDERS[v as Exclude<QrType, "payment">];
     }
   );
 
@@ -152,6 +177,21 @@ export function buildQrCodeTool(): HTMLElement {
   runBtn.addEventListener("click", runGenerate);
 
   function valueToEncode(): string {
+    if (type === "payment") {
+      const name = payAccountName.value.trim();
+      const number = payAccountNumber.value.trim();
+      const bank = payBank.value.trim();
+      const amount = payAmount.value.trim();
+      const note = payNote.value.trim();
+      if (!name && !number && !bank) return "";
+      const lines = ["Payment details"];
+      if (name) lines.push(`Account name: ${name}`);
+      if (number) lines.push(`Account number: ${number}`);
+      if (bank) lines.push(`Bank: ${bank}`);
+      if (amount) lines.push(`Amount: ${amount}`);
+      if (note) lines.push(`Note: ${note}`);
+      return lines.join("\n");
+    }
     const raw = textarea.value.trim();
     if (!raw) return "";
     switch (type) {
@@ -171,7 +211,10 @@ export function buildQrCodeTool(): HTMLElement {
     if (!value) {
       clear(resultHost);
       resultHost.appendChild(
-        el("div", { class: "validation-error" }, [el("strong", {}, ["Nothing to encode. "]), "Type something first."])
+        el("div", { class: "validation-error" }, [
+          el("strong", {}, ["Nothing to encode. "]),
+          type === "payment" ? "Fill in at least the account name, number, or bank." : "Type something first.",
+        ])
       );
       return;
     }
@@ -234,6 +277,7 @@ export function buildQrCodeTool(): HTMLElement {
   root.append(
     el("div", { class: "controls-grid" }, [typeCtrl.root, ecCtrl.root]),
     textarea,
+    paymentFields,
     el("div", { style: "height:16px" }),
     styleCtrl.root,
     el("div", { class: "controls-grid" }, [
