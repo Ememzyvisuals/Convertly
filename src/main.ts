@@ -14,6 +14,10 @@ import { createThemeToggle } from "./ui/themeToggle";
 import { createLangToggle } from "./ui/langToggle";
 import { buildToolsHub, type HubCategory } from "./pages/toolsHub";
 import { buildToolPage } from "./pages/toolPage";
+import { buildFaqSection } from "./pages/faqSection";
+import { buildBlogHub } from "./pages/blogHub";
+import { buildBlogPost } from "./pages/blogPost";
+import { BLOG_POSTS } from "./content/blog";
 import type { ToolIconName } from "./ui/toolIcons";
 import { t } from "./i18n";
 import { updateSEO } from "./seo";
@@ -25,7 +29,7 @@ injectVercelAnalytics();
 
 const YEAR = new Date().getFullYear();
 
-type View = "landing" | "tools-hub" | "tool";
+type View = "landing" | "tools-hub" | "tool" | "blog-hub" | "blog-post";
 
 // A single bold glyph meant to sit inside a solid-colored badge (see .brand-badge), not a
 // loose two-tone line icon floating next to the wordmark. Solid fill in currentColor so it
@@ -42,7 +46,7 @@ function closeIconSVG(): string {
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`;
 }
 
-function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { root: HTMLElement; setView: (view: View) => void } {
+function buildHeader(onNavigate: (view: "landing" | "tools-hub" | "blog-hub") => void): { root: HTMLElement; setView: (view: View) => void } {
   const mark = el("span", { class: "brand-mark brand-badge" });
   mark.innerHTML = brandMarkSVG();
 
@@ -55,8 +59,9 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
   // Desktop: a pill track with a sliding highlight.
   const homeLink = el("button", { type: "button", class: "header-nav-btn" }, [t("nav.home")]);
   const toolsLink = el("button", { type: "button", class: "header-nav-btn" }, [t("nav.tools")]);
+  const blogLink = el("button", { type: "button", class: "header-nav-btn" }, ["Blog"]);
   const navIndicator = el("div", { class: "header-nav-indicator", "aria-hidden": "true" });
-  const navTrack = el("nav", { class: "header-links", "aria-label": t("nav.mainLabel") }, [homeLink, toolsLink, navIndicator]);
+  const navTrack = el("nav", { class: "header-links", "aria-label": t("nav.mainLabel") }, [homeLink, toolsLink, blogLink, navIndicator]);
 
   // Mobile: a hamburger button that opens a slide-in drawer, the standard mobile pattern,
   // rather than squeezing the desktop pill nav into a second wrapped row.
@@ -75,6 +80,7 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
 
   const mobileHomeLink = el("button", { type: "button", class: "mobile-nav-link" }, [t("nav.home")]);
   const mobileToolsLink = el("button", { type: "button", class: "mobile-nav-link" }, [t("nav.tools")]);
+  const mobileBlogLink = el("button", { type: "button", class: "mobile-nav-link" }, ["Blog"]);
 
   const drawer = el("aside", { class: "mobile-nav-drawer", role: "dialog", "aria-label": t("nav.menuLabel"), "aria-modal": "true" }, [
     el("div", { class: "mobile-nav-drawer-head" }, [
@@ -84,7 +90,7 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
       ]),
       closeBtn,
     ]),
-    el("nav", { class: "mobile-nav-links", "aria-label": t("nav.mainLabel") }, [mobileHomeLink, mobileToolsLink]),
+    el("nav", { class: "mobile-nav-links", "aria-label": t("nav.mainLabel") }, [mobileHomeLink, mobileToolsLink, mobileBlogLink]),
     el("div", { class: "mobile-nav-drawer-foot" }, [
       el("div", { class: "mobile-nav-drawer-foot-row" }, [el("span", {}, [t("nav.appearance")]), createThemeToggle()]),
       el("div", { class: "mobile-nav-drawer-foot-row" }, [el("span", {}, [t("nav.language")]), createLangToggle()]),
@@ -111,6 +117,7 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
 
   homeLink.addEventListener("click", () => onNavigate("landing"));
   toolsLink.addEventListener("click", () => onNavigate("tools-hub"));
+  blogLink.addEventListener("click", () => onNavigate("blog-hub"));
   mobileHomeLink.addEventListener("click", () => {
     setDrawerOpen(false);
     onNavigate("landing");
@@ -118,6 +125,10 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
   mobileToolsLink.addEventListener("click", () => {
     setDrawerOpen(false);
     onNavigate("tools-hub");
+  });
+  mobileBlogLink.addEventListener("click", () => {
+    setDrawerOpen(false);
+    onNavigate("blog-hub");
   });
 
   const root = el("header", { class: "site-header" }, [
@@ -138,15 +149,24 @@ function buildHeader(onNavigate: (view: "landing" | "tools-hub") => void): { roo
   function setView(view: View) {
     const homeActive = view === "landing";
     const toolsActive = view === "tools-hub" || view === "tool";
+    const blogActive = view === "blog-hub" || view === "blog-post";
     homeLink.setAttribute("aria-current", homeActive ? "page" : "false");
     toolsLink.setAttribute("aria-current", toolsActive ? "page" : "false");
+    blogLink.setAttribute("aria-current", blogActive ? "page" : "false");
     mobileHomeLink.setAttribute("aria-current", homeActive ? "page" : "false");
     mobileToolsLink.setAttribute("aria-current", toolsActive ? "page" : "false");
-    requestAnimationFrame(() => moveIndicatorTo(homeActive ? homeLink : toolsLink));
+    mobileBlogLink.setAttribute("aria-current", blogActive ? "page" : "false");
+    const active = blogActive ? blogLink : toolsActive ? toolsLink : homeLink;
+    requestAnimationFrame(() => moveIndicatorTo(active));
   }
 
   window.addEventListener("resize", () => {
-    const active = homeLink.getAttribute("aria-current") === "page" ? homeLink : toolsLink;
+    const active =
+      homeLink.getAttribute("aria-current") === "page"
+        ? homeLink
+        : toolsLink.getAttribute("aria-current") === "page"
+          ? toolsLink
+          : blogLink;
     moveIndicatorTo(active);
     if (window.innerWidth > 760 && drawerOpen) setDrawerOpen(false);
   });
@@ -555,6 +575,8 @@ const app = document.getElementById("app")!;
 const landingHost = el("div", { class: "view view-landing" });
 const toolsHubHost = el("div", { class: "view view-tools-hub" });
 const toolPageHost = el("div", { class: "view view-tool-page" });
+const blogHubHost = el("div", { class: "view view-blog-hub" });
+const blogPostHost = el("div", { class: "view view-blog-post" });
 
 // Keeps the document's title/description/canonical/social tags matching whichever view is on
 // screen (see seo.ts), so a tool page opened directly by hash, a crawler, or a shared link gets
@@ -565,6 +587,15 @@ function updateSEOForView(view: View, toolId?: string) {
     updateSEO({ title: def.title, description: def.description, path: `/tools/${toolId}` });
   } else if (view === "tools-hub") {
     updateSEO({ title: t("hub.title"), description: t("hub.subtitle"), path: "/tools" });
+  } else if (view === "blog-post" && toolId) {
+    const post = BLOG_POSTS.find((p) => p.slug === toolId);
+    if (post) {
+      updateSEO({ title: post.title, description: post.description, path: `/blog/${post.slug}` });
+      return;
+    }
+    updateSEO({ title: "Blog", description: "Guides on file privacy and using Convertly's tools.", path: "/blog" });
+  } else if (view === "blog-hub") {
+    updateSEO({ title: "Blog", description: "Guides on file privacy and using Convertly's tools.", path: "/blog" });
   } else {
     updateSEO({
       title: "Convertly. Convert. Vectorize. Compress.",
@@ -579,14 +610,34 @@ function showOnly(view: View, toolId?: string) {
   landingHost.style.display = view === "landing" ? "" : "none";
   toolsHubHost.style.display = view === "tools-hub" ? "block" : "none";
   toolPageHost.style.display = view === "tool" ? "block" : "none";
+  blogHubHost.style.display = view === "blog-hub" ? "block" : "none";
+  blogPostHost.style.display = view === "blog-post" ? "block" : "none";
   header.setView(view);
   window.scrollTo(0, 0);
   updateSEOForView(view, toolId);
 }
 
-function goTo(view: "landing" | "tools-hub") {
+function goTo(view: "landing" | "tools-hub" | "blog-hub") {
   showOnly(view);
-  const path = view === "landing" ? "/" : "/tools";
+  const path = view === "landing" ? "/" : view === "blog-hub" ? "/blog" : "/tools";
+  if (window.location.pathname !== path) history.pushState(null, "", path);
+}
+
+function renderBlogPost(slug: string): boolean {
+  const post = BLOG_POSTS.find((p) => p.slug === slug);
+  if (!post) return false;
+  clear(blogPostHost);
+  blogPostHost.appendChild(buildBlogPost(post, goToTool));
+  return true;
+}
+
+function goToBlogPost(slug: string) {
+  if (!renderBlogPost(slug)) {
+    goTo("blog-hub");
+    return;
+  }
+  showOnly("blog-post", slug);
+  const path = `/blog/${slug}`;
   if (window.location.pathname !== path) history.pushState(null, "", path);
 }
 
@@ -694,11 +745,14 @@ const hubCategories: HubCategory[] = [
 ];
 
 const toolsHub = buildToolsHub(hubCategories);
+const faq = buildFaqSection();
+const blogHub = buildBlogHub(goToBlogPost);
 
-landingHost.append(hero, trust);
+landingHost.append(hero, trust, faq);
 toolsHubHost.append(toolsHub);
+blogHubHost.append(blogHub);
 
-app.append(header.root, landingHost, toolsHubHost, toolPageHost, footer);
+app.append(header.root, landingHost, toolsHubHost, toolPageHost, blogHubHost, blogPostHost, footer);
 
 // Reads the current URL path and shows the matching view. Used at startup and again on every
 // popstate (the browser's back/forward buttons), not just the in-app card and nav clicks
@@ -718,10 +772,15 @@ function applyPath() {
   }
   const path = window.location.pathname;
   const toolMatch = /^\/tools\/([\w-]+)\/?$/.exec(path);
+  const blogPostMatch = /^\/blog\/([\w-]+)\/?$/.exec(path);
   if (toolMatch && renderToolPage(toolMatch[1])) {
     showOnly("tool", toolMatch[1]);
   } else if (/^\/tools\/?$/.test(path)) {
     showOnly("tools-hub");
+  } else if (blogPostMatch && renderBlogPost(blogPostMatch[1])) {
+    showOnly("blog-post", blogPostMatch[1]);
+  } else if (/^\/blog\/?$/.test(path)) {
+    showOnly("blog-hub");
   } else {
     showOnly("landing");
   }

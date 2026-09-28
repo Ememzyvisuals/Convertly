@@ -9,6 +9,8 @@
   ],
   "rewrites": [
     { "source": "/tools", "destination": "/index.html" },
-    { "source": "/tools/:id", "destination": "/index.html" }
+    { "source": "/tools/:id", "destination": "/index.html" },
+    { "source": "/blog", "destination": "/index.html" },
+    { "source": "/blog/:slug", "destination": "/index.html" }
   ]
 }
