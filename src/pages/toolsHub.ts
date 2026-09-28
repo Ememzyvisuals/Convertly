@@ -28,7 +28,7 @@ function buildCard(tool: HubTool): HTMLElement {
   // A real anchor with a real href, not a bare button, so a crawler (or a person) can discover
   // and open each tool page as its own link rather than one that only works via a click handler.
   // The click is still intercepted to go through the existing in-app navigation (no full reload).
-  const card = el("a", { href: `#/tools/${tool.id}`, class: "hub-card" }, [
+  const card = el("a", { href: `/tools/${tool.id}`, class: "hub-card" }, [
     iconBubble,
     el("span", { class: "hub-card-label" }, [tool.label]),
     el("span", { class: "hub-card-desc" }, [tool.desc]),

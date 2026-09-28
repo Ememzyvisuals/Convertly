@@ -7,6 +7,7 @@ import "@fontsource/fredoka/500.css";
 import "@fontsource/fredoka/600.css";
 import "@fontsource/fredoka/700.css";
 import "./style.css";
+import { inject as injectVercelAnalytics } from "@vercel/analytics";
 import { el, clear } from "./ui/dom";
 import { xLogoSVG, tiktokLogoSVG, githubLogoSVG, portfolioGlyphSVG } from "./ui/socialIcons";
 import { createThemeToggle } from "./ui/themeToggle";
@@ -16,6 +17,11 @@ import { buildToolPage } from "./pages/toolPage";
 import type { ToolIconName } from "./ui/toolIcons";
 import { t } from "./i18n";
 import { updateSEO } from "./seo";
+
+// Vercel's own visitor/page-view analytics. inject() patches history.pushState so it still
+// picks up each in-app route change (landing -> hub -> a tool page) as its own page view, even
+// though this is a client-side router rather than a real full-page navigation.
+injectVercelAnalytics();
 
 const YEAR = new Date().getFullYear();
 
@@ -339,12 +345,12 @@ function buildFooter(onGoToTool: (id: string) => void): HTMLElement {
   ]);
 
   const productCol = footerLinkList(t("footer.product.title"), [
-    { label: t("footer.product.convert"), href: "#/tools/convert", onClick: () => onGoToTool("convert") },
-    { label: t("footer.product.vectorize"), href: "#/tools/vectorize", onClick: () => onGoToTool("vectorize") },
-    { label: t("footer.product.compress"), href: "#/tools/compress-image", onClick: () => onGoToTool("compress-image") },
+    { label: t("footer.product.convert"), href: "/tools/convert", onClick: () => onGoToTool("convert") },
+    { label: t("footer.product.vectorize"), href: "/tools/vectorize", onClick: () => onGoToTool("vectorize") },
+    { label: t("footer.product.compress"), href: "/tools/compress-image", onClick: () => onGoToTool("compress-image") },
     {
       label: t("footer.product.pdfAudioArchive"),
-      href: "#/tools/images-to-pdf",
+      href: "/tools/images-to-pdf",
       onClick: () => onGoToTool("images-to-pdf"),
     },
   ]);
@@ -556,9 +562,9 @@ const toolPageHost = el("div", { class: "view view-tool-page" });
 function updateSEOForView(view: View, toolId?: string) {
   if (view === "tool" && toolId && TOOL_PAGES[toolId]) {
     const def = TOOL_PAGES[toolId];
-    updateSEO({ title: def.title, description: def.description, path: `/#/tools/${toolId}` });
+    updateSEO({ title: def.title, description: def.description, path: `/tools/${toolId}` });
   } else if (view === "tools-hub") {
-    updateSEO({ title: t("hub.title"), description: t("hub.subtitle"), path: "/#/tools" });
+    updateSEO({ title: t("hub.title"), description: t("hub.subtitle"), path: "/tools" });
   } else {
     updateSEO({
       title: "Convertly. Convert. Vectorize. Compress.",
@@ -580,7 +586,8 @@ function showOnly(view: View, toolId?: string) {
 
 function goTo(view: "landing" | "tools-hub") {
   showOnly(view);
-  window.location.hash = view === "landing" ? "" : "#/tools";
+  const path = view === "landing" ? "/" : "/tools";
+  if (window.location.pathname !== path) history.pushState(null, "", path);
 }
 
 // A small spinner shown in the tool-page body the instant its page opens, while its dynamic
@@ -625,7 +632,8 @@ function goToTool(id: string) {
     return;
   }
   showOnly("tool", id);
-  window.location.hash = `#/tools/${id}`;
+  const path = `/tools/${id}`;
+  if (window.location.pathname !== path) history.pushState(null, "", path);
 }
 
 const header = buildHeader(goTo);
@@ -692,20 +700,35 @@ toolsHubHost.append(toolsHub);
 
 app.append(header.root, landingHost, toolsHubHost, toolPageHost, footer);
 
-// Reads the current hash and shows the matching view. Used at startup and again on every
-// hashchange, so the browser's back/forward buttons and hand-typed #/tools/<id> links work,
-// not just the in-app card and nav clicks (which already call goTo/goToTool directly).
-function applyHash() {
+// Reads the current URL path and shows the matching view. Used at startup and again on every
+// popstate (the browser's back/forward buttons), not just the in-app card and nav clicks
+// (which already call goTo/goToTool directly, via history.pushState).
+//
+// Real paths (/tools/<id>) instead of a #/tools/<id> hash fragment: search engines
+// canonicalize away anything after a "#", so two hash-only "pages" are indistinguishable to
+// them, but /tools/image-to-pdf and /tools/qr-code are genuinely different URLs that can each
+// rank for their own search terms. A hand-typed or bookmarked old #/tools/<id> link (from
+// before this change) is redirected to its real path below so nothing shared earlier breaks.
+function applyPath() {
   const hash = window.location.hash;
-  const toolMatch = /^#\/tools\/([\w-]+)/.exec(hash);
+  const legacyMatch = /^#\/tools\/?([\w-]*)/.exec(hash);
+  if (legacyMatch) {
+    const target = legacyMatch[1] ? `/tools/${legacyMatch[1]}` : "/tools";
+    history.replaceState(null, "", target);
+  }
+  const path = window.location.pathname;
+  const toolMatch = /^\/tools\/([\w-]+)\/?$/.exec(path);
   if (toolMatch && renderToolPage(toolMatch[1])) {
     showOnly("tool", toolMatch[1]);
-  } else if (hash.startsWith("#/tools")) {
+  } else if (/^\/tools\/?$/.test(path)) {
     showOnly("tools-hub");
   } else {
     showOnly("landing");
   }
 }
 
-window.addEventListener("hashchange", applyHash);
-applyHash();
+// Any in-app anchor (hub cards, footer links) already has its own click handler that calls
+// preventDefault and the right goTo/goToTool function, which is what actually navigates. This
+// listener only has to catch the browser's own back/forward buttons.
+window.addEventListener("popstate", applyPath);
+applyPath();

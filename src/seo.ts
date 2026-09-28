@@ -4,7 +4,7 @@
 // sync once someone (or a crawler that executes JS) navigates to the tools hub or a specific
 // tool page, so each one can be indexed and shared with its own distinct title and description
 // instead of every page looking identical in search results and link previews.
-const SITE_URL = "https://convertly0.vercel.app";
+const SITE_URL = "https://convertly.is-cool.dev";
 
 function setMeta(attr: "name" | "property", key: string, content: string) {
   let tag = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
@@ -30,7 +30,7 @@ export interface RouteSEO {
   /** Full page title, without the site name suffix (added here). */
   title: string;
   description: string;
-  /** Path after the origin, e.g. "/" or "/#/tools/convert". */
+  /** Path after the origin, e.g. "/" or "/tools/convert". */
   path: string;
 }
 

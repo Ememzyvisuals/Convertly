@@ -6,5 +6,9 @@
       "destination": "https://convertly.is-cool.dev/$1",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    { "source": "/tools", "destination": "/index.html" },
+    { "source": "/tools/:id", "destination": "/index.html" }
   ]
 }
